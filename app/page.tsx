@@ -152,12 +152,11 @@ export default function HomePage() {
 
       {/* ── STATS ── */}
       <section className="py-14 border-y border-gray-100 bg-gray-50">
-        <div className="max-w-4xl mx-auto px-5 grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
+        <div className="max-w-3xl mx-auto px-5 grid grid-cols-3 gap-8 text-center">
           {[
             { value: stats.students, label: "Studerende" },
             { value: stats.companies, label: "Virksomheder" },
             { value: stats.applications, label: "Forespørgsler" },
-            { value: stats.services, label: "Services" },
           ].map((s) => (
             <div key={s.label}>
               <p className="text-4xl font-black text-gray-900">{s.value}</p>
