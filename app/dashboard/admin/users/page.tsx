@@ -1,0 +1,162 @@
+"use client";
+
+import { useActionState, useState } from "react";
+import { setHourlyRate, updateUserRole } from "../actions";
+
+type User = {
+  id: string;
+  email: string;
+  role: string;
+  created_at: string;
+  student_profiles: { full_name: string | null; hourly_rate: number | null } | null;
+};
+
+// This page is a client component because it has inline mini-forms
+// Data is fetched via a server component wrapper below
+import { createClient } from "@/lib/supabase/client";
+import { useEffect } from "react";
+
+export default function AdminUsersPage() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from("users")
+      .select("id, email, role, created_at, student_profiles(full_name, hourly_rate)")
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        setUsers((data as unknown as User[]) || []);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <Loading />;
+
+  return (
+    <div className="p-8">
+      <h1 className="text-2xl font-bold text-gray-900 mb-1">User Management</h1>
+      <p className="text-gray-500 text-sm mb-8">
+        Manage roles and set student hourly rates
+      </p>
+
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+            <tr>
+              <th className="px-6 py-3 text-left">Email</th>
+              <th className="px-6 py-3 text-left">Role</th>
+              <th className="px-6 py-3 text-left">Name</th>
+              <th className="px-6 py-3 text-left">Hourly Rate (kr/hr)</th>
+              <th className="px-6 py-3 text-left">Joined</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {users.map((u) => (
+              <UserRow key={u.id} user={u} onUpdated={() => {
+                // re-fetch
+                const supabase = createClient();
+                supabase
+                  .from("users")
+                  .select("id, email, role, created_at, student_profiles(full_name, hourly_rate)")
+                  .order("created_at", { ascending: false })
+                  .then(({ data }) => setUsers((data as unknown as User[]) || []));
+              }} />
+            ))}
+          </tbody>
+        </table>
+        {!users.length && (
+          <p className="px-6 py-8 text-sm text-gray-400 text-center">No users found.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function UserRow({ user, onUpdated }: { user: User; onUpdated: () => void }) {
+  const [rateState, rateAction, savingRate] = useActionState(
+    async (prev: any, fd: FormData) => {
+      const res = await setHourlyRate(prev, fd);
+      if (res.success) onUpdated();
+      return res;
+    },
+    {}
+  );
+  const [roleState, roleAction, savingRole] = useActionState(
+    async (prev: any, fd: FormData) => {
+      const res = await updateUserRole(prev, fd);
+      if (res.success) onUpdated();
+      return res;
+    },
+    {}
+  );
+
+  return (
+    <tr className="hover:bg-gray-50/50">
+      <td className="px-6 py-3 font-medium text-gray-800">{user.email}</td>
+      <td className="px-6 py-3">
+        <form action={roleAction} className="flex items-center gap-2">
+          <input type="hidden" name="userId" value={user.id} />
+          <select
+            name="role"
+            defaultValue={user.role}
+            className="border border-gray-200 rounded-lg text-xs px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="student">student</option>
+            <option value="company">company</option>
+            <option value="admin">admin</option>
+          </select>
+          <button
+            type="submit"
+            disabled={savingRole}
+            className="text-xs text-indigo-600 hover:underline disabled:opacity-50"
+          >
+            {savingRole ? "…" : "Save"}
+          </button>
+        </form>
+      </td>
+      <td className="px-6 py-3 text-gray-600">
+        {user.student_profiles?.full_name || <span className="text-gray-300">—</span>}
+      </td>
+      <td className="px-6 py-3">
+        {user.role === "student" ? (
+          <form action={rateAction} className="flex items-center gap-2">
+            <input type="hidden" name="studentId" value={user.id} />
+            <input
+              name="rate"
+              type="number"
+              min="0"
+              step="0.01"
+              defaultValue={user.student_profiles?.hourly_rate ?? ""}
+              placeholder="0.00"
+              className="border border-gray-200 rounded-lg text-xs px-2 py-1 w-20 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <button
+              type="submit"
+              disabled={savingRate}
+              className="text-xs text-indigo-600 hover:underline disabled:opacity-50"
+            >
+              {savingRate ? "…" : "Set"}
+            </button>
+            {rateState?.success && <span className="text-xs text-green-600">✓</span>}
+            {rateState?.error && <span className="text-xs text-red-500">{rateState.error}</span>}
+          </form>
+        ) : (
+          <span className="text-gray-300 text-xs">N/A</span>
+        )}
+      </td>
+      <td className="px-6 py-3 text-gray-400 text-xs">
+        {new Date(user.created_at).toLocaleDateString()}
+      </td>
+    </tr>
+  );
+}
+
+function Loading() {
+  return (
+    <div className="p-8 flex items-center justify-center h-64">
+      <div className="text-gray-400 text-sm">Loading…</div>
+    </div>
+  );
+}

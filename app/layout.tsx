@@ -1,8 +1,19 @@
+import type { Metadata } from "next";
 import "./globals.css";
-export default function RootLayout({ children }) {
+
+export const metadata: Metadata = {
+  title: "StudentMatch",
+  description: "Connecting students and companies",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="da">
-      <body>{children}</body>
+    <html lang="en">
+      <body className="bg-gray-50 text-gray-900 antialiased">{children}</body>
     </html>
   );
 }

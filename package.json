@@ -8,10 +8,13 @@
     "start": "next start"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.49.1",
+    "@tailwindcss/postcss": "^4.2.2",
     "next": "^16.2.2",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
     "@types/node": "^25.5.2",
