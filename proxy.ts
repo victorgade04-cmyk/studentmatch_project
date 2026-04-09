@@ -60,14 +60,18 @@ export async function proxy(request: NextRequest) {
     );
   }
 
+  // Admin preview: allow admins to view student/company dashboards with ?preview=admin
+  const isAdminPreview =
+    role === "admin" && request.nextUrl.searchParams.get("preview") === "admin";
+
   // Guard role-specific routes
   if (pathname.startsWith("/dashboard/admin") && role !== "admin") {
     return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url));
   }
-  if (pathname.startsWith("/dashboard/student") && role !== "student") {
+  if (pathname.startsWith("/dashboard/student") && role !== "student" && !isAdminPreview) {
     return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url));
   }
-  if (pathname.startsWith("/dashboard/company") && role !== "company") {
+  if (pathname.startsWith("/dashboard/company") && role !== "company" && !isAdminPreview) {
     return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url));
   }
 
