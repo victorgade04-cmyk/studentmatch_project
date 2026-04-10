@@ -65,7 +65,7 @@ export default function StudentProfilePage() {
           label="Skills (comma-separated)"
           name="skills"
           defaultValue={profile?.skills?.join(", ") || ""}
-          placeholder="React, TypeScript, Node.js"
+          placeholder="Finance, Excel, Communication"
         />
         <Field
           label="Education"
