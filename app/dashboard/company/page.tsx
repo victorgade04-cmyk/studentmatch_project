@@ -32,10 +32,10 @@ export default async function CompanyDashboard() {
       <p className="text-gray-500 text-sm mb-8">Manage jobs and find students</p>
 
       {!profile?.company_name && (
-        <div className="mb-6 bg-indigo-50 border border-indigo-200 rounded-xl p-4 flex items-center justify-between">
-          <p className="text-sm text-indigo-700">Complete your company profile to attract students.</p>
-          <Link href="/dashboard/company/profile" className="text-sm font-semibold text-indigo-600 hover:underline">
-            Set up profile →
+        <div className="mb-6 bg-gray-900 rounded-xl p-4 flex items-center justify-between">
+          <p className="text-sm text-gray-300">Complete your company profile to attract students.</p>
+          <Link href="/dashboard/company/profile" className="text-sm font-semibold text-white border border-white/30 rounded-lg px-3 py-1.5 hover:bg-white/10 transition-colors whitespace-nowrap ml-4">
+            Set up profile
           </Link>
         </div>
       )}
@@ -44,7 +44,7 @@ export default async function CompanyDashboard() {
         {[
           { label: "Total Jobs", value: jobs?.length ?? 0, color: "text-gray-900" },
           { label: "Open Jobs", value: openJobs, color: "text-green-600" },
-          { label: "Total Applications", value: apps?.length ?? 0, color: "text-indigo-600" },
+          { label: "Total Applications", value: apps?.length ?? 0, color: "text-gray-900" },
           { label: "Pending Review", value: pendingApps, color: "text-yellow-600" },
         ].map((s) => (
           <div key={s.label} className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
@@ -63,9 +63,9 @@ export default async function CompanyDashboard() {
           <Link
             key={l.href}
             href={l.href}
-            className="block bg-white rounded-xl border border-gray-100 p-5 hover:border-indigo-200 hover:shadow-sm transition group"
+            className="block bg-white rounded-xl border border-gray-100 p-5 hover:border-gray-900 hover:shadow-sm transition group"
           >
-            <p className="font-semibold text-sm text-gray-800 group-hover:text-indigo-600">{l.label}</p>
+            <p className="font-semibold text-sm text-gray-800 group-hover:text-gray-900">{l.label}</p>
             <p className="text-xs text-gray-400 mt-1">{l.desc}</p>
           </Link>
         ))}

@@ -92,8 +92,8 @@ export default function LoginPage() {
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { value: "student", label: "🎓 Studerende" },
-                    { value: "company", label: "🏢 Virksomhed" },
+                    { value: "student", label: "Studerende" },
+                    { value: "company", label: "Virksomhed" },
                   ].map(({ value, label }) => (
                     <label
                       key={value}

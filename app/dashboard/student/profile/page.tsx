@@ -38,17 +38,14 @@ export default function StudentProfilePage() {
       </p>
 
       {/* Hourly rate (read-only) */}
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-center gap-3">
-        <span className="text-2xl">💰</span>
-        <div>
-          <p className="text-sm font-semibold text-amber-800">
-            Hourly Rate:{" "}
-            {profile?.hourly_rate ? `${profile.hourly_rate} kr/hr` : "Not set yet"}
-          </p>
-          <p className="text-xs text-amber-600 mt-0.5">
-            Your hourly rate is set by the admin and cannot be changed by you.
-          </p>
-        </div>
+      <div className="bg-gray-900 rounded-xl p-4 mb-6">
+        <p className="text-sm font-semibold text-white">
+          Timepris:{" "}
+          {profile?.hourly_rate ? `${profile.hourly_rate} kr/t` : "Ikke sat endnu"}
+        </p>
+        <p className="text-xs text-gray-400 mt-0.5">
+          Din timepris sættes af admin og kan ikke ændres af dig.
+        </p>
       </div>
 
       <form action={action} className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-5">
@@ -83,7 +80,7 @@ export default function StudentProfilePage() {
           <select
             name="availability"
             defaultValue={profile?.availability || ""}
-            className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
           >
             <option value="">Select availability</option>
             <option value="Full-time">Full-time</option>
@@ -108,7 +105,7 @@ export default function StudentProfilePage() {
         <button
           type="submit"
           disabled={pending}
-          className="px-5 py-2.5 rounded-lg bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 disabled:opacity-60 transition-colors"
+          className="px-5 py-2.5 rounded-lg bg-gray-900 text-white font-semibold text-sm hover:bg-gray-700 disabled:opacity-60 transition-colors"
         >
           {pending ? "Saving…" : "Save profile"}
         </button>
@@ -135,7 +132,7 @@ function Field({
         name={name}
         defaultValue={defaultValue}
         placeholder={placeholder}
-        className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
       />
     </div>
   );
@@ -160,7 +157,7 @@ function TextareaField({
         defaultValue={defaultValue}
         placeholder={placeholder}
         rows={4}
-        className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+        className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
       />
     </div>
   );

@@ -92,7 +92,7 @@ export default function StudentJobsPage() {
                 ) : (
                   <button
                     onClick={() => setActiveJob(job)}
-                    className="text-sm px-4 py-1.5 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors"
+                    className="text-sm px-4 py-1.5 rounded-lg bg-gray-900 text-white font-medium hover:bg-gray-700 transition-colors"
                   >
                     Apply
                   </button>
@@ -105,7 +105,6 @@ export default function StudentJobsPage() {
 
       {!jobs.length && (
         <div className="text-center py-16 text-gray-400">
-          <p className="text-4xl mb-3">🔍</p>
           <p className="text-sm">No open jobs at the moment. Check back soon!</p>
         </div>
       )}
@@ -128,7 +127,7 @@ export default function StudentJobsPage() {
                   name="cover_letter"
                   rows={5}
                   placeholder="Tell the company why you're a great fit…"
-                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
                 />
               </div>
               {state?.error && (
@@ -140,7 +139,7 @@ export default function StudentJobsPage() {
                 <button
                   type="submit"
                   disabled={pending}
-                  className="flex-1 py-2.5 rounded-lg bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 disabled:opacity-60 transition-colors"
+                  className="flex-1 py-2.5 rounded-lg bg-gray-900 text-white font-semibold text-sm hover:bg-gray-700 disabled:opacity-60 transition-colors"
                 >
                   {pending ? "Submitting…" : "Submit application"}
                 </button>

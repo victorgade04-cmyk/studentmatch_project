@@ -101,7 +101,7 @@ function UserRow({ user, onUpdated }: { user: User; onUpdated: () => void }) {
           <select
             name="role"
             defaultValue={user.role}
-            className="border border-gray-200 rounded-lg text-xs px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="border border-gray-200 rounded-lg text-xs px-2 py-1 focus:outline-none focus:ring-2 focus:ring-gray-900"
           >
             <option value="student">student</option>
             <option value="company">company</option>
@@ -110,7 +110,7 @@ function UserRow({ user, onUpdated }: { user: User; onUpdated: () => void }) {
           <button
             type="submit"
             disabled={savingRole}
-            className="text-xs text-indigo-600 hover:underline disabled:opacity-50"
+            className="text-xs text-gray-700 hover:underline disabled:opacity-50"
           >
             {savingRole ? "…" : "Save"}
           </button>
@@ -130,12 +130,12 @@ function UserRow({ user, onUpdated }: { user: User; onUpdated: () => void }) {
               step="0.01"
               defaultValue={user.student_profiles?.hourly_rate ?? ""}
               placeholder="0.00"
-              className="border border-gray-200 rounded-lg text-xs px-2 py-1 w-20 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="border border-gray-200 rounded-lg text-xs px-2 py-1 w-20 focus:outline-none focus:ring-2 focus:ring-gray-900"
             />
             <button
               type="submit"
               disabled={savingRate}
-              className="text-xs text-indigo-600 hover:underline disabled:opacity-50"
+              className="text-xs text-gray-700 hover:underline disabled:opacity-50"
             >
               {savingRate ? "…" : "Set"}
             </button>

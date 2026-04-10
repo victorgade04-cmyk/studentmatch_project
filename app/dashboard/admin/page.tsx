@@ -46,19 +46,15 @@ export default async function AdminDashboard() {
           <div className="flex gap-2">
             <a
               href="/dashboard/student?preview=admin"
-              target="_blank"
-              rel="noopener noreferrer"
               className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-900 transition-all"
             >
-              <span>🎓</span> Se som studerende
+              Se som studerende
             </a>
             <a
               href="/dashboard/company?preview=admin"
-              target="_blank"
-              rel="noopener noreferrer"
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-900 text-sm font-semibold text-white hover:bg-gray-700 transition-colors"
             >
-              <span>🏢</span> Se som virksomhed
+              Se som virksomhed
             </a>
           </div>
         </div>

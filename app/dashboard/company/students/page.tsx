@@ -32,7 +32,7 @@ export default async function BrowseStudentsPage() {
             </div>
 
             {s.availability && (
-              <p className="text-xs text-indigo-600 font-medium mb-2 bg-indigo-50 px-2 py-0.5 rounded-full inline-block">
+              <p className="text-xs text-gray-600 font-medium mb-2 bg-gray-100 px-2 py-0.5 rounded-full inline-block">
                 {s.availability}
               </p>
             )}
@@ -42,7 +42,7 @@ export default async function BrowseStudentsPage() {
             )}
 
             {s.education && (
-              <p className="text-xs text-gray-500 mb-3">🎓 {s.education}</p>
+              <p className="text-xs text-gray-500 mb-3">{s.education}</p>
             )}
 
             {s.skills?.length > 0 && (
@@ -50,7 +50,7 @@ export default async function BrowseStudentsPage() {
                 {s.skills.map((skill: string) => (
                   <span
                     key={skill}
-                    className="bg-indigo-50 text-indigo-700 text-xs px-2 py-0.5 rounded-full font-medium"
+                    className="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full font-medium"
                   >
                     {skill}
                   </span>
@@ -62,7 +62,6 @@ export default async function BrowseStudentsPage() {
 
         {!students?.length && (
           <div className="col-span-full text-center py-16 text-gray-400">
-            <p className="text-4xl mb-3">🎓</p>
             <p className="text-sm">No student profiles yet. Check back soon!</p>
           </div>
         )}

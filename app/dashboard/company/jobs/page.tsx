@@ -69,7 +69,7 @@ export default function CompanyJobsPage() {
         </div>
         <button
           onClick={() => setShowForm((v) => !v)}
-          className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
+          className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-colors"
         >
           {showForm ? "Cancel" : "+ Post Job"}
         </button>
@@ -88,23 +88,23 @@ export default function CompanyJobsPage() {
                 <div key={f.name}>
                   <label className="block text-xs font-medium text-gray-700 mb-1">{f.label}</label>
                   <input name={f.name} placeholder={f.placeholder} type={f.name === "budget" ? "number" : "text"}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
                 </div>
               ))}
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
               <textarea name="description" placeholder="Describe the role, responsibilities…" rows={3}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Requirements (comma-separated)</label>
               <input name="requirements" placeholder="React, TypeScript, 2+ years experience"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
             </div>
             {createState?.error && <p className="text-sm text-red-600">{createState.error}</p>}
             <button type="submit" disabled={creating}
-              className="px-5 py-2 rounded-lg bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 disabled:opacity-60">
+              className="px-5 py-2 rounded-lg bg-gray-900 text-white font-semibold text-sm hover:bg-gray-700 disabled:opacity-60">
               {creating ? "Posting…" : "Post job"}
             </button>
           </form>
@@ -144,7 +144,7 @@ export default function CompanyJobsPage() {
                     </button>
                   </form>
                   <button onClick={() => setExpanded(isExpanded ? null : job.id)}
-                    className="text-xs px-3 py-1 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors">
+                    className="text-xs px-3 py-1 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">
                     {isExpanded ? "Hide" : "Applicants"}
                   </button>
                 </div>
@@ -171,7 +171,6 @@ export default function CompanyJobsPage() {
         })}
         {!jobs.length && (
           <div className="text-center py-16 text-gray-400">
-            <p className="text-4xl mb-3">📋</p>
             <p className="text-sm">No jobs posted yet. Click "+ Post Job" to get started.</p>
           </div>
         )}
@@ -205,7 +204,7 @@ function AppRow({ app, onUpdate }: { app: Application; onUpdate: () => void }) {
           {app.student_profiles?.skills?.length ? (
             <div className="flex flex-wrap gap-1 mt-2">
               {app.student_profiles.skills.slice(0, 4).map((s) => (
-                <span key={s} className="bg-indigo-50 text-indigo-700 text-xs px-1.5 py-0.5 rounded font-medium">{s}</span>
+                <span key={s} className="bg-gray-100 text-gray-700 text-xs px-1.5 py-0.5 rounded font-medium">{s}</span>
               ))}
             </div>
           ) : null}

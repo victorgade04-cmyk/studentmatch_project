@@ -77,7 +77,6 @@ export default async function StudentApplicationsPage() {
 
         {!applications?.length && (
           <div className="text-center py-16 text-gray-400">
-            <p className="text-4xl mb-3">📋</p>
             <p className="text-sm">No applications yet. Browse jobs to apply!</p>
           </div>
         )}

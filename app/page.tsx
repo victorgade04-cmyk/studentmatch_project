@@ -178,7 +178,6 @@ export default function HomePage() {
             {/* Card 1 */}
             <div className="group relative bg-gray-900 rounded-2xl p-8 overflow-hidden hover:shadow-2xl transition-shadow">
               <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-16 translate-x-16" />
-              <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-6 text-2xl">🎓</div>
               <h3 className="text-2xl font-black text-white mb-3">Find studentermedhjælper</h3>
               <p className="text-gray-400 leading-relaxed mb-6">
                 Rekruttér ambitiøse studerende til fast deltidsarbejde. Gennemsnitstimepris
@@ -193,7 +192,6 @@ export default function HomePage() {
             {/* Card 2 */}
             <div className="group relative bg-white rounded-2xl p-8 border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow">
               <div className="absolute top-0 right-0 w-40 h-40 bg-gray-50 rounded-full -translate-y-16 translate-x-16" />
-              <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mb-6 text-2xl">⚡</div>
               <h3 className="text-2xl font-black text-gray-900 mb-3">Få hjælp på timebasis</h3>
               <p className="text-gray-500 leading-relaxed mb-6">
                 Har du en specifik opgave? Post din opgave og modtag tilbud fra
@@ -219,23 +217,19 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
-                icon: "🎯",
                 title: "Præcist match",
                 body: "Vores platform matcher virksomheder med studerende baseret på kompetencer, tilgængelighed og faglig baggrund.",
               },
               {
-                icon: "🔄",
                 title: "Fleksibel hjælp",
                 body: "Vælg mellem fast ansættelse på deltid eller projektbaseret hjælp. Alt tilpasses din virksomheds behov.",
               },
               {
-                icon: "🌱",
                 title: "Talent med potentiale",
                 body: "Studerende er motiverede, up-to-date med ny viden og klar til at bevise sig. Investér i fremtidens arbejdskraft i dag.",
               },
             ].map((f) => (
               <div key={f.title} className="bg-white rounded-2xl p-7 border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all">
-                <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center text-2xl mb-5">{f.icon}</div>
                 <h3 className="font-bold text-lg text-gray-900 mb-2">{f.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{f.body}</p>
               </div>
@@ -257,16 +251,15 @@ export default function HomePage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {[
-              { icon: "📱", title: "SoMe og contentplan", desc: "Instagram, LinkedIn, TikTok og redaktionelle planer" },
-              { icon: "📊", title: "Excel-modeller og budgetter", desc: "Finansielle modeller, forecast og rapportering" },
-              { icon: "🧾", title: "Regnskabsanalyse", desc: "Gennemgang af regnskaber og nøgletal" },
-              { icon: "🔍", title: "Research og markedsanalyse", desc: "Konkurrentanalyse, trends og markedsdata" },
-              { icon: "🎧", title: "Kundeservice", desc: "Telefon, mail og chat support på deltid" },
-              { icon: "🔎", title: "SEO", desc: "Søgeordsanalyse, on-page og teknisk SEO" },
+              { title: "SoMe og contentplan", desc: "Instagram, LinkedIn, TikTok og redaktionelle planer" },
+              { title: "Excel-modeller og budgetter", desc: "Finansielle modeller, forecast og rapportering" },
+              { title: "Regnskabsanalyse", desc: "Gennemgang af regnskaber og nøgletal" },
+              { title: "Research og markedsanalyse", desc: "Konkurrentanalyse, trends og markedsdata" },
+              { title: "Kundeservice", desc: "Telefon, mail og chat support på deltid" },
+              { title: "SEO", desc: "Søgeordsanalyse, on-page og teknisk SEO" },
             ].map((t) => (
               <div key={t.title}
                 className="group bg-white border border-gray-100 rounded-2xl p-5 hover:border-gray-900 hover:shadow-lg transition-all cursor-pointer">
-                <div className="text-2xl mb-3">{t.icon}</div>
                 <h4 className="font-bold text-sm text-gray-900 mb-1">{t.title}</h4>
                 <p className="text-xs text-gray-500 leading-relaxed">{t.desc}</p>
               </div>
@@ -373,15 +366,14 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { step: "01", icon: "✍️", title: "Opret profil", body: "Registrér dig som studerende eller virksomhed på under 2 minutter." },
-              { step: "02", icon: "🔍", title: "Find match", body: "Søg i vores database eller post en opgave og modtag ansøgninger." },
-              { step: "03", icon: "💬", title: "Tag kontakt", body: "Chat direkte med din match og aftal de konkrete vilkår." },
-              { step: "04", icon: "🚀", title: "Kom i gang", body: "Start samarbejdet og betal sikkert via platformen." },
+              { step: "01", title: "Opret profil", body: "Registrér dig som studerende eller virksomhed på under 2 minutter." },
+              { step: "02", title: "Find match", body: "Søg i vores database eller post en opgave og modtag ansøgninger." },
+              { step: "03", title: "Tag kontakt", body: "Chat direkte med din match og aftal de konkrete vilkår." },
+              { step: "04", title: "Kom i gang", body: "Start samarbejdet og betal sikkert via platformen." },
             ].map((s) => (
               <div key={s.step} className="relative">
                 <div className="bg-gray-50 rounded-2xl p-6 h-full border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all">
                   <div className="text-xs font-black text-gray-300 tracking-widest mb-4">{s.step}</div>
-                  <div className="text-3xl mb-4">{s.icon}</div>
                   <h4 className="font-bold text-gray-900 mb-2">{s.title}</h4>
                   <p className="text-sm text-gray-500 leading-relaxed">{s.body}</p>
                 </div>

@@ -47,7 +47,7 @@ export default function CompanyProfilePage() {
               type={f.type}
               defaultValue={f.value}
               placeholder={f.placeholder}
-              className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
             />
           </div>
         ))}
@@ -59,7 +59,7 @@ export default function CompanyProfilePage() {
             defaultValue={profile?.description || ""}
             placeholder="Tell students about your company, culture, and what you do…"
             rows={5}
-            className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+            className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
           />
         </div>
 
@@ -73,7 +73,7 @@ export default function CompanyProfilePage() {
         <button
           type="submit"
           disabled={pending}
-          className="px-5 py-2.5 rounded-lg bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 disabled:opacity-60 transition-colors"
+          className="px-5 py-2.5 rounded-lg bg-gray-900 text-white font-semibold text-sm hover:bg-gray-700 disabled:opacity-60 transition-colors"
         >
           {pending ? "Saving…" : "Save profile"}
         </button>
