@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { applyToJob } from "../actions";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 type Job = {
   id: string;
@@ -11,6 +12,7 @@ type Job = {
   budget: number | null;
   status: string;
   created_at: string;
+  company_id: string;
   company_profiles: { company_name: string | null } | null;
 };
 
@@ -37,15 +39,12 @@ export default function StudentJobsPage() {
     Promise.all([
       supabase
         .from("jobs")
-        .select("id, title, description, budget, status, created_at, company_profiles(company_name)")
+        .select("id, title, description, budget, status, created_at, company_id, company_profiles(company_name)")
         .eq("status", "open")
         .order("created_at", { ascending: false }),
       supabase.auth.getUser().then(({ data: { user } }) =>
         user
-          ? supabase
-              .from("applications")
-              .select("job_id")
-              .eq("student_id", user.id)
+          ? supabase.from("applications").select("job_id").eq("student_id", user.id)
           : { data: [] }
       ),
     ]).then(([{ data: j }, { data: a }]) => {
@@ -59,44 +58,52 @@ export default function StudentJobsPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Browse Jobs</h1>
-      <p className="text-gray-500 text-sm mb-8">{jobs.length} open positions</p>
+      <h1 className="text-2xl font-black text-gray-900 mb-1">Se jobs</h1>
+      <p className="text-gray-500 text-sm mb-8">{jobs.length} åbne stillinger</p>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {jobs.map((job) => {
           const applied = myApps.has(job.id);
           return (
-            <div key={job.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <div key={job.id} className="bg-white rounded-xl border border-gray-100 p-5 flex flex-col gap-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900">{job.title}</h3>
+                  <h3 className="font-bold text-gray-900">{job.title}</h3>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    {job.company_profiles?.company_name || "Company"} ·{" "}
-                    {new Date(job.created_at).toLocaleDateString()}
+                    {job.company_profiles?.company_name || "Virksomhed"} ·{" "}
+                    {new Date(job.created_at).toLocaleDateString("da-DK")}
                   </p>
                 </div>
                 {job.budget && (
-                  <span className="text-sm font-semibold text-green-600 whitespace-nowrap">
+                  <span className="text-sm font-bold text-green-600 whitespace-nowrap">
                     {job.budget} kr
                   </span>
                 )}
               </div>
+
               {job.description && (
-                <p className="text-sm text-gray-600 mt-3 line-clamp-3">{job.description}</p>
+                <p className="text-sm text-gray-600 line-clamp-3">{job.description}</p>
               )}
-              <div className="mt-4">
+
+              <div className="flex items-center gap-2 mt-auto">
                 {applied ? (
-                  <span className="text-xs text-green-600 font-semibold bg-green-50 px-3 py-1.5 rounded-lg">
-                    ✓ Applied
+                  <span className="text-xs text-green-700 font-semibold bg-green-50 px-3 py-1.5 rounded-lg">
+                    Ansøgt
                   </span>
                 ) : (
                   <button
                     onClick={() => setActiveJob(job)}
-                    className="text-sm px-4 py-1.5 rounded-lg bg-gray-900 text-white font-medium hover:bg-gray-700 transition-colors"
+                    className="text-sm px-4 py-1.5 rounded-lg bg-gray-900 text-white font-semibold hover:bg-gray-700 transition-colors"
                   >
-                    Apply
+                    Ansøg
                   </button>
                 )}
+                <Link
+                  href={`/dashboard/messages?with=${job.company_id}`}
+                  className="text-sm px-4 py-1.5 rounded-lg border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Send besked
+                </Link>
               </div>
             </div>
           );
@@ -105,7 +112,7 @@ export default function StudentJobsPage() {
 
       {!jobs.length && (
         <div className="text-center py-16 text-gray-400">
-          <p className="text-sm">No open jobs at the moment. Check back soon!</p>
+          <p className="text-sm">Ingen åbne jobs i øjeblikket. Kig tilbage snart!</p>
         </div>
       )}
 
@@ -113,7 +120,7 @@ export default function StudentJobsPage() {
       {activeJob && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-            <h2 className="font-bold text-lg text-gray-900 mb-1">Apply to {activeJob.title}</h2>
+            <h2 className="font-bold text-lg text-gray-900 mb-1">Ansøg til {activeJob.title}</h2>
             <p className="text-sm text-gray-400 mb-4">
               {activeJob.company_profiles?.company_name}
             </p>
@@ -121,12 +128,12 @@ export default function StudentJobsPage() {
               <input type="hidden" name="jobId" value={activeJob.id} />
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Cover Letter
+                  Ansøgningstekst
                 </label>
                 <textarea
                   name="cover_letter"
                   rows={5}
-                  placeholder="Tell the company why you're a great fit…"
+                  placeholder="Fortæl virksomheden hvorfor du er det rette valg…"
                   className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
                 />
               </div>
@@ -141,14 +148,14 @@ export default function StudentJobsPage() {
                   disabled={pending}
                   className="flex-1 py-2.5 rounded-lg bg-gray-900 text-white font-semibold text-sm hover:bg-gray-700 disabled:opacity-60 transition-colors"
                 >
-                  {pending ? "Submitting…" : "Submit application"}
+                  {pending ? "Sender…" : "Send ansøgning"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveJob(null)}
                   className="px-4 py-2.5 rounded-lg border border-gray-200 text-gray-600 text-sm hover:bg-gray-50 transition-colors"
                 >
-                  Cancel
+                  Annuller
                 </button>
               </div>
             </form>
@@ -162,7 +169,7 @@ export default function StudentJobsPage() {
 function Loading() {
   return (
     <div className="p-8 flex items-center justify-center h-64">
-      <div className="text-gray-400 text-sm">Loading jobs…</div>
+      <div className="text-gray-400 text-sm">Indlæser jobs…</div>
     </div>
   );
 }

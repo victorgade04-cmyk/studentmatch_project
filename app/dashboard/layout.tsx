@@ -32,7 +32,7 @@ export default async function DashboardLayout({
         </Suspense>
 
         {/* Main */}
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="flex-1 min-h-0 overflow-auto">{children}</main>
       </div>
     </div>
   );

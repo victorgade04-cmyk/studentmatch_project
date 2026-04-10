@@ -23,6 +23,14 @@ type Job = {
   applications: Application[];
 };
 
+const STATUS_DA: Record<string, string> = {
+  open: "åben",
+  closed: "lukket",
+  pending: "afventer",
+  approved: "godkendt",
+  rejected: "afvist",
+};
+
 export default function CompanyJobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,54 +66,70 @@ export default function CompanyJobsPage() {
 
   useEffect(fetchJobs, []);
 
-  if (loading) return <div className="p-8 text-gray-400 text-sm">Loading…</div>;
+  if (loading) return <div className="p-8 text-gray-400 text-sm">Indlæser…</div>;
 
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">My Jobs</h1>
-          <p className="text-gray-500 text-sm">{jobs.length} job listings</p>
+          <h1 className="text-2xl font-black text-gray-900 mb-1">Mine jobs</h1>
+          <p className="text-gray-500 text-sm">{jobs.length} jobopslag</p>
         </div>
         <button
           onClick={() => setShowForm((v) => !v)}
           className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-colors"
         >
-          {showForm ? "Cancel" : "+ Post Job"}
+          {showForm ? "Annuller" : "+ Opret job"}
         </button>
       </div>
 
       {/* New job form */}
       {showForm && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-6">
-          <h2 className="font-semibold text-gray-800 mb-4">Post a New Job</h2>
+        <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
+          <h2 className="font-bold text-gray-900 mb-4">Opret nyt jobopslag</h2>
           <form action={createAction} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
-                { label: "Job Title", name: "title", placeholder: "Frontend Developer" },
+                { label: "Jobtitel", name: "title", placeholder: "Marketing-assistent" },
                 { label: "Budget (kr)", name: "budget", placeholder: "5000" },
               ].map((f) => (
                 <div key={f.name}>
                   <label className="block text-xs font-medium text-gray-700 mb-1">{f.label}</label>
-                  <input name={f.name} placeholder={f.placeholder} type={f.name === "budget" ? "number" : "text"}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
+                  <input
+                    name={f.name}
+                    placeholder={f.placeholder}
+                    type={f.name === "budget" ? "number" : "text"}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  />
                 </div>
               ))}
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
-              <textarea name="description" placeholder="Describe the role, responsibilities…" rows={3}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none" />
+              <label className="block text-xs font-medium text-gray-700 mb-1">Beskrivelse</label>
+              <textarea
+                name="description"
+                placeholder="Beskriv rollen, ansvarsområder og forventninger…"
+                rows={3}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
+              />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Requirements (comma-separated)</label>
-              <input name="requirements" placeholder="React, TypeScript, 2+ years experience"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
+              <label className="block text-xs font-medium text-gray-700 mb-1">Krav (kommasepareret)</label>
+              <input
+                name="requirements"
+                placeholder="Excel, kommunikation, 2+ års erfaring"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
             </div>
-            {createState?.error && <p className="text-sm text-red-600">{createState.error}</p>}
-            <button type="submit" disabled={creating}
-              className="px-5 py-2 rounded-lg bg-gray-900 text-white font-semibold text-sm hover:bg-gray-700 disabled:opacity-60">
-              {creating ? "Posting…" : "Post job"}
+            {createState?.error && (
+              <p className="text-sm text-red-600">{createState.error}</p>
+            )}
+            <button
+              type="submit"
+              disabled={creating}
+              className="px-5 py-2 rounded-lg bg-gray-900 text-white font-semibold text-sm hover:bg-gray-700 disabled:opacity-60"
+            >
+              {creating ? "Opretter…" : "Opret job"}
             </button>
           </form>
         </div>
@@ -117,35 +141,40 @@ export default function CompanyJobsPage() {
           const isExpanded = expanded === job.id;
           const pendingApps = job.applications?.filter((a) => a.status === "pending").length ?? 0;
           return (
-            <div key={job.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div key={job.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
               <div className="p-5 flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-gray-900">{job.title}</h3>
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <h3 className="font-bold text-gray-900">{job.title}</h3>
                     <StatusBadge status={job.status} />
                     {pendingApps > 0 && (
                       <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-semibold">
-                        {pendingApps} pending
+                        {pendingApps} afventer
                       </span>
                     )}
                   </div>
                   <p className="text-xs text-gray-400">
-                    Posted {new Date(job.created_at).toLocaleDateString()}
+                    Oprettet {new Date(job.created_at).toLocaleDateString("da-DK")}
                     {job.budget && ` · ${job.budget} kr`}
-                    {` · ${job.applications?.length ?? 0} applications`}
+                    {` · ${job.applications?.length ?? 0} ansøgninger`}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <form action={toggleJobStatusDirect}>
                     <input type="hidden" name="jobId" value={job.id} />
                     <input type="hidden" name="newStatus" value={job.status === "open" ? "closed" : "open"} />
-                    <button type="submit" className="text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
-                      {job.status === "open" ? "Close" : "Reopen"}
+                    <button
+                      type="submit"
+                      className="text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                    >
+                      {job.status === "open" ? "Luk" : "Genåbn"}
                     </button>
                   </form>
-                  <button onClick={() => setExpanded(isExpanded ? null : job.id)}
-                    className="text-xs px-3 py-1 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">
-                    {isExpanded ? "Hide" : "Applicants"}
+                  <button
+                    onClick={() => setExpanded(isExpanded ? null : job.id)}
+                    className="text-xs px-3 py-1 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                  >
+                    {isExpanded ? "Skjul" : "Ansøgere"}
                   </button>
                 </div>
               </div>
@@ -153,7 +182,7 @@ export default function CompanyJobsPage() {
               {isExpanded && (
                 <div className="border-t border-gray-50 p-5">
                   <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                    Applications ({job.applications?.length ?? 0})
+                    Ansøgninger ({job.applications?.length ?? 0})
                   </h4>
                   {job.applications?.length ? (
                     <div className="space-y-3">
@@ -162,16 +191,17 @@ export default function CompanyJobsPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-400">No applications yet.</p>
+                    <p className="text-sm text-gray-400">Ingen ansøgninger endnu.</p>
                   )}
                 </div>
               )}
             </div>
           );
         })}
+
         {!jobs.length && (
           <div className="text-center py-16 text-gray-400">
-            <p className="text-sm">No jobs posted yet. Click "+ Post Job" to get started.</p>
+            <p className="text-sm">Ingen jobopslag endnu. Klik på &ldquo;+ Opret job&rdquo; for at komme i gang.</p>
           </div>
         )}
       </div>
@@ -195,36 +225,51 @@ function AppRow({ app, onUpdate }: { app: Application; onUpdate: () => void }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <StatusBadge status={app.status} />
-            <span className="text-xs text-gray-400">{new Date(app.created_at).toLocaleDateString()}</span>
+            <span className="text-xs text-gray-400">
+              {new Date(app.created_at).toLocaleDateString("da-DK")}
+            </span>
           </div>
-          <p className="font-medium text-sm text-gray-800">{app.student_profiles?.full_name || "Student"}</p>
+          <p className="font-semibold text-sm text-gray-800">
+            {app.student_profiles?.full_name || "Studerende"}
+          </p>
           {app.student_profiles?.hourly_rate && (
-            <p className="text-xs text-gray-500 mt-0.5">{app.student_profiles.hourly_rate} kr/hr</p>
+            <p className="text-xs text-gray-500 mt-0.5">{app.student_profiles.hourly_rate} kr/t</p>
           )}
           {app.student_profiles?.skills?.length ? (
             <div className="flex flex-wrap gap-1 mt-2">
               {app.student_profiles.skills.slice(0, 4).map((s) => (
-                <span key={s} className="bg-gray-100 text-gray-700 text-xs px-1.5 py-0.5 rounded font-medium">{s}</span>
+                <span key={s} className="bg-gray-100 text-gray-700 text-xs px-1.5 py-0.5 rounded font-medium">
+                  {s}
+                </span>
               ))}
             </div>
           ) : null}
           {app.cover_letter && (
             <details className="mt-2">
-              <summary className="text-xs text-gray-400 cursor-pointer">Cover letter</summary>
-              <p className="text-xs text-gray-600 mt-1 bg-gray-50 p-2 rounded line-clamp-4">{app.cover_letter}</p>
+              <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-600">
+                Ansøgningstekst
+              </summary>
+              <p className="text-xs text-gray-600 mt-1 bg-gray-50 p-2 rounded line-clamp-4">
+                {app.cover_letter}
+              </p>
             </details>
           )}
         </div>
         <div className="flex gap-1.5 flex-shrink-0">
-          {["approved", "rejected"].map((s) => (
+          {(["approved", "rejected"] as const).map((s) => (
             <form key={s} action={action}>
               <input type="hidden" name="appId" value={app.id} />
               <input type="hidden" name="status" value={s} />
-              <button type="submit" disabled={pending || app.status === s}
+              <button
+                type="submit"
+                disabled={pending || app.status === s}
                 className={`text-xs px-2.5 py-1 rounded-lg font-medium disabled:opacity-40 ${
-                  s === "approved" ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-red-100 text-red-700 hover:bg-red-200"
-                }`}>
-                {s === "approved" ? "Approve" : "Reject"}
+                  s === "approved"
+                    ? "bg-green-100 text-green-700 hover:bg-green-200"
+                    : "bg-red-100 text-red-700 hover:bg-red-200"
+                }`}
+              >
+                {s === "approved" ? "Godkend" : "Afvis"}
               </button>
             </form>
           ))}
@@ -242,9 +287,12 @@ function StatusBadge({ status }: { status: string }) {
     approved: "bg-green-100 text-green-700",
     rejected: "bg-red-100 text-red-700",
   };
+  const labels: Record<string, string> = {
+    open: "åben", closed: "lukket", pending: "afventer", approved: "godkendt", rejected: "afvist",
+  };
   return (
     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${styles[status] || "bg-gray-100 text-gray-600"}`}>
-      {status}
+      {labels[status] || status}
     </span>
   );
 }

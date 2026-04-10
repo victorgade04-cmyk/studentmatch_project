@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { sendApplicationStatusEmail } from "@/lib/email";
 
 async function getCompany() {
   const supabase = await createClient();
@@ -30,7 +31,7 @@ export async function updateCompanyProfile(
 
     if (error) return { error: error.message };
     revalidatePath("/dashboard/company/profile");
-    return { success: "Profile updated!" };
+    return { success: "Profil opdateret!" };
   } catch (e: any) {
     return { error: e.message };
   }
@@ -44,7 +45,7 @@ export async function createJob(
     const { supabase, user } = await getCompany();
 
     const title = (formData.get("title") as string).trim();
-    if (!title) return { error: "Title is required." };
+    if (!title) return { error: "Titel er påkrævet." };
 
     const requirements = (formData.get("requirements") as string)
       .split(",")
@@ -64,7 +65,7 @@ export async function createJob(
 
     if (error) return { error: error.message };
     revalidatePath("/dashboard/company/jobs");
-    return { success: "Job posted!" };
+    return { success: "Job oprettet!" };
   } catch (e: any) {
     return { error: e.message };
   }
@@ -87,7 +88,7 @@ export async function toggleJobStatus(
 
     if (error) return { error: error.message };
     revalidatePath("/dashboard/company/jobs");
-    return { success: "Status updated." };
+    return { success: "Status opdateret." };
   } catch (e: any) {
     return { error: e.message };
   }
@@ -103,18 +104,18 @@ export async function updateApplicationStatus(
     const status = formData.get("status") as string;
 
     if (!["pending", "approved", "rejected"].includes(status)) {
-      return { error: "Invalid status." };
+      return { error: "Ugyldig status." };
     }
 
-    // Verify the application is for a job owned by this company
+    // Verify the application belongs to this company's job
     const { data: app } = await supabase
       .from("applications")
-      .select("id, jobs!inner(company_id)")
+      .select("id, student_id, jobs!inner(company_id, title, company_profiles(company_name))")
       .eq("id", appId)
       .single();
 
     if (!app || (app.jobs as any)?.company_id !== user.id) {
-      return { error: "Unauthorized." };
+      return { error: "Ikke autoriseret." };
     }
 
     const { error } = await supabase
@@ -124,13 +125,40 @@ export async function updateApplicationStatus(
 
     if (error) return { error: error.message };
     revalidatePath("/dashboard/company/jobs");
-    return { success: "Application updated." };
+
+    // Email notification to student (best effort, only on terminal states)
+    if (status === "approved" || status === "rejected") {
+      try {
+        const { data: studentUser } = await supabase
+          .from("users")
+          .select("email")
+          .eq("id", app.student_id)
+          .single();
+
+        const { data: studentProfile } = await supabase
+          .from("student_profiles")
+          .select("full_name")
+          .eq("id", app.student_id)
+          .single();
+
+        if (studentUser?.email) {
+          await sendApplicationStatusEmail({
+            studentEmail: studentUser.email,
+            studentName: studentProfile?.full_name || "Studerende",
+            jobTitle: (app.jobs as any)?.title || "Stillingen",
+            status: status as "approved" | "rejected",
+            companyName: (app.jobs as any)?.company_profiles?.company_name || "Virksomheden",
+          });
+        }
+      } catch {}
+    }
+
+    return { success: "Ansøgning opdateret." };
   } catch (e: any) {
     return { error: e.message };
   }
 }
 
-// Simple form actions for direct use in client component forms (no useActionState)
 export async function toggleJobStatusDirect(formData: FormData): Promise<void> {
   try {
     const { supabase, user } = await getCompany();

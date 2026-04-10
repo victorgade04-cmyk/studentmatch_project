@@ -16,12 +16,14 @@ const navLinks = {
     { href: "/dashboard/student/profile", label: "Min profil" },
     { href: "/dashboard/student/jobs", label: "Se jobs" },
     { href: "/dashboard/student/applications", label: "Mine ansøgninger" },
+    { href: "/dashboard/messages", label: "Beskeder" },
   ],
   company: [
     { href: "/dashboard/company", label: "Oversigt" },
     { href: "/dashboard/company/profile", label: "Virksomhedsprofil" },
     { href: "/dashboard/company/jobs", label: "Mine jobs" },
     { href: "/dashboard/company/students", label: "Find studerende" },
+    { href: "/dashboard/messages", label: "Beskeder" },
   ],
 };
 

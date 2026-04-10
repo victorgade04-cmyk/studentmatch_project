@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { sendApplicationEmail } from "@/lib/email";
 
 async function getStudent() {
   const supabase = await createClient();
@@ -36,7 +37,7 @@ export async function updateStudentProfile(
 
     if (error) return { error: error.message };
     revalidatePath("/dashboard/student/profile");
-    return { success: "Profile updated!" };
+    return { success: "Profil opdateret!" };
   } catch (e: any) {
     return { error: e.message };
   }
@@ -58,13 +59,44 @@ export async function applyToJob(
     });
 
     if (error) {
-      if (error.code === "23505") return { error: "You already applied to this job." };
+      if (error.code === "23505") return { error: "Du har allerede ansøgt om dette job." };
       return { error: error.message };
     }
 
     revalidatePath("/dashboard/student/applications");
     revalidatePath("/dashboard/student/jobs");
-    return { success: "Application submitted!" };
+
+    // Email notification to company (best effort)
+    try {
+      const { data: job } = await supabase
+        .from("jobs")
+        .select("title, company_id, company_profiles(company_name)")
+        .eq("id", jobId)
+        .single();
+
+      const { data: companyUser } = await supabase
+        .from("users")
+        .select("email")
+        .eq("id", (job as any)?.company_id)
+        .single();
+
+      const { data: studentProfile } = await supabase
+        .from("student_profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .single();
+
+      if (job && companyUser?.email) {
+        await sendApplicationEmail({
+          companyEmail: companyUser.email,
+          companyName: (job as any)?.company_profiles?.company_name || "Virksomheden",
+          studentName: studentProfile?.full_name || "En studerende",
+          jobTitle: (job as any).title,
+        });
+      }
+    } catch {}
+
+    return { success: "Ansøgning sendt!" };
   } catch (e: any) {
     return { error: e.message };
   }
