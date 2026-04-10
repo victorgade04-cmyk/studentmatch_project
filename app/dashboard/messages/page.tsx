@@ -73,7 +73,7 @@ export default function MessagesPage() {
       .or(`student_id.eq.${uid},company_id.eq.${uid}`)
       .order("updated_at", { ascending: false });
 
-    const convs = (data as Conversation[]) || [];
+    const convs = (data as unknown as Conversation[]) || [];
     setConversations(convs);
     setLoadingConvs(false);
     return convs;
