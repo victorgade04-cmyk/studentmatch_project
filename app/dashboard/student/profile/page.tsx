@@ -3,6 +3,8 @@
 import { useActionState, useEffect, useState } from "react";
 import { updateStudentProfile } from "../actions";
 import { createClient } from "@/lib/supabase/client";
+import { PACKAGES, PACKAGE_BADGE, PackageId } from "@/lib/packages";
+import Link from "next/link";
 
 const initial: { error?: string; success?: string } = {};
 
@@ -18,7 +20,7 @@ export default function StudentProfilePage() {
       if (!user) return;
       supabase
         .from("student_profiles")
-        .select("full_name, bio, skills, education, availability, hourly_rate")
+        .select("full_name, bio, skills, education, availability, hourly_rate, package")
         .eq("id", user.id)
         .single()
         .then(({ data }) => {
@@ -30,9 +32,23 @@ export default function StudentProfilePage() {
 
   if (loading) return <Loading />;
 
+  const pkgId: PackageId = (profile?.package as PackageId) || "bronze";
+  const pkg = PACKAGES[pkgId];
+  const badgeClass = PACKAGE_BADGE[pkgId];
+  const currentSkills: string[] = profile?.skills || [];
+  const skillsStr = currentSkills.join(", ");
+
   return (
     <div className="p-8 max-w-2xl">
-      <h1 className="text-2xl font-black text-gray-900 mb-1">Min profil</h1>
+      <div className="flex items-start justify-between mb-1">
+        <h1 className="text-2xl font-black text-gray-900">Min profil</h1>
+        <Link
+          href="/dashboard/student/package"
+          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${badgeClass} hover:opacity-80 transition-opacity`}
+        >
+          {pkg.name}
+        </Link>
+      </div>
       <p className="text-gray-500 text-sm mb-8">
         Hold din profil opdateret, så virksomheder kan finde dig.
       </p>
@@ -55,18 +71,56 @@ export default function StudentProfilePage() {
           defaultValue={profile?.full_name || ""}
           placeholder="Sofie Hansen"
         />
-        <TextareaField
-          label="Om dig"
-          name="bio"
-          defaultValue={profile?.bio || ""}
-          placeholder="Fortæl virksomheder lidt om dig selv…"
-        />
-        <Field
-          label="Kompetencer (kommasepareret)"
-          name="skills"
-          defaultValue={profile?.skills?.join(", ") || ""}
-          placeholder="Finance, Excel, Communication"
-        />
+
+        {/* Bio — only shown for Silver and Gold */}
+        {pkg.hasBio ? (
+          <TextareaField
+            label="Om dig"
+            name="bio"
+            defaultValue={profile?.bio || ""}
+            placeholder="Fortæl virksomheder lidt om dig selv…"
+          />
+        ) : (
+          <div className="bg-gray-50 border border-gray-100 rounded-lg p-4">
+            <p className="text-sm font-medium text-gray-500 mb-1">Om dig</p>
+            <p className="text-xs text-gray-400">
+              Personlig bio er ikke inkluderet i Bronze-pakken.{" "}
+              <Link href="/dashboard/student/package" className="underline hover:text-gray-600">
+                Opgrader til Silver
+              </Link>{" "}
+              for at tilføje en bio.
+            </p>
+          </div>
+        )}
+
+        {/* Skills with package limit */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="block text-sm font-medium text-gray-700">
+              Kompetencer (kommasepareret)
+            </label>
+            {pkg.maxSkills !== null && (
+              <span className={`text-xs font-medium ${currentSkills.length >= pkg.maxSkills ? "text-red-500" : "text-gray-400"}`}>
+                {currentSkills.length}/{pkg.maxSkills}
+              </span>
+            )}
+          </div>
+          <input
+            name="skills"
+            defaultValue={skillsStr}
+            placeholder="Finance, Excel, Communication"
+            className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+          />
+          {pkg.maxSkills !== null && (
+            <p className="text-xs text-gray-400 mt-1.5">
+              Din pakke tillader maks. {pkg.maxSkills} kompetencer.{" "}
+              <Link href="/dashboard/student/package" className="underline hover:text-gray-600">
+                Opgrader for ubegrænset adgang.
+              </Link>
+            </p>
+          )}
+        </div>
+
         <Field
           label="Uddannelse"
           name="education"

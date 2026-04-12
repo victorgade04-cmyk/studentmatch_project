@@ -283,7 +283,9 @@ export default function HomePage() {
             <h2 className="text-4xl font-black text-white">Simpel og transparent prissætning</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Company pricing */}
+          <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6">For virksomheder</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
             {/* Starter */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-7 hover:bg-white/10 transition-colors">
               <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Starter</p>
@@ -351,6 +353,101 @@ export default function HomePage() {
                 className="block text-center py-2.5 rounded-xl border border-white/20 text-white text-sm font-semibold hover:bg-white/10 transition-colors">
                 Læs mere
               </Link>
+            </div>
+          </div>
+
+          {/* Student pricing */}
+          <div className="border-t border-white/10 pt-14">
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6">For studerende</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Bronze */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-7 hover:bg-white/10 transition-colors">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 mb-4">Bronze</span>
+                <div className="flex items-end gap-1 mb-1">
+                  <span className="text-5xl font-black text-white">0</span>
+                  <span className="text-xl text-gray-400 mb-1.5">kr</span>
+                </div>
+                <p className="text-gray-500 text-sm mb-6">Altid gratis</p>
+                <ul className="space-y-3 mb-8">
+                  {[
+                    "Uddannelsesnavn og -sted",
+                    "Maks. 3 kompetencer",
+                    "1 fil/dokument upload (CV)",
+                    "Maks. 5 timer/uge",
+                    "Maks. 2 aktive opgaver",
+                  ].map((f) => (
+                    <li key={f} className="flex items-center gap-2.5 text-sm text-gray-300">
+                      <span className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-xs">✓</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/login"
+                  className="block text-center py-2.5 rounded-xl border border-white/20 text-white text-sm font-semibold hover:bg-white/10 transition-colors">
+                  Kom i gang
+                </Link>
+              </div>
+
+              {/* Silver */}
+              <div className="bg-white rounded-2xl p-7 relative shadow-2xl shadow-black/30 scale-105">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gray-900 border border-white/20 text-white text-xs font-bold px-4 py-1 rounded-full">
+                  Anbefalet
+                </div>
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 mb-4">Silver</span>
+                <div className="flex items-end gap-1 mb-1">
+                  <span className="text-5xl font-black text-gray-900">39</span>
+                  <span className="text-xl text-gray-500 mb-1.5">kr/md</span>
+                </div>
+                <p className="text-gray-500 text-sm mb-6">Pr. måned</p>
+                <ul className="space-y-3 mb-8">
+                  {[
+                    "Uddannelsesnavn og -sted",
+                    "Ubegrænsede kompetencer",
+                    "3 fil/dokument uploads",
+                    "Personlig bio",
+                    "Maks. 10 timer/uge",
+                    "Maks. 2 aktive opgaver",
+                  ].map((f) => (
+                    <li key={f} className="flex items-center gap-2.5 text-sm text-gray-700">
+                      <span className="w-4 h-4 rounded-full bg-gray-900 flex items-center justify-center text-xs text-white">✓</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/login"
+                  className="block text-center py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-colors">
+                  Vælg Silver
+                </Link>
+              </div>
+
+              {/* Gold */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-7 hover:bg-white/10 transition-colors">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 mb-4">Gold</span>
+                <div className="flex items-end gap-1 mb-1">
+                  <span className="text-5xl font-black text-white">79</span>
+                  <span className="text-xl text-gray-400 mb-1.5">kr/md</span>
+                </div>
+                <p className="text-gray-500 text-sm mb-6">Pr. måned</p>
+                <ul className="space-y-3 mb-8">
+                  {[
+                    "Alt ubegrænset",
+                    "Ubegrænsede kompetencer",
+                    "Ubegrænsede fil/dokument uploads",
+                    "Personlig bio",
+                    "Ubegrænsede timer/uge",
+                    "Maks. 2 aktive opgaver",
+                  ].map((f) => (
+                    <li key={f} className="flex items-center gap-2.5 text-sm text-gray-300">
+                      <span className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-xs">✓</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/login"
+                  className="block text-center py-2.5 rounded-xl border border-white/20 text-white text-sm font-semibold hover:bg-white/10 transition-colors">
+                  Vælg Gold
+                </Link>
+              </div>
             </div>
           </div>
         </div>

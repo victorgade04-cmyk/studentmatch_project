@@ -14,6 +14,7 @@ const navLinks = {
   student: [
     { href: "/dashboard/student", label: "Oversigt" },
     { href: "/dashboard/student/profile", label: "Min profil" },
+    { href: "/dashboard/student/package", label: "Skift pakke" },
     { href: "/dashboard/student/jobs", label: "Se jobs" },
     { href: "/dashboard/student/applications", label: "Mine ansøgninger" },
     { href: "/dashboard/messages", label: "Beskeder" },

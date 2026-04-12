@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { sendApplicationEmail } from "@/lib/email";
+import { PACKAGES, PackageId } from "@/lib/packages";
 
 async function getStudent() {
   const supabase = await createClient();
@@ -23,16 +24,36 @@ export async function updateStudentProfile(
       .map((s) => s.trim())
       .filter(Boolean);
 
+    // Fetch current package to enforce limits
+    const { data: profileData } = await supabase
+      .from("student_profiles")
+      .select("package")
+      .eq("id", user.id)
+      .single();
+
+    const pkgId = ((profileData?.package as PackageId) || "bronze");
+    const pkg = PACKAGES[pkgId];
+
+    if (pkg.maxSkills !== null && skills.length > pkg.maxSkills) {
+      return { error: `Din ${pkg.name}-pakke tillader maks. ${pkg.maxSkills} kompetencer. Opgrader din pakke for at tilføje flere.` };
+    }
+
+    const updateData: Record<string, any> = {
+      full_name: formData.get("full_name") as string,
+      skills,
+      education: formData.get("education") as string,
+      availability: formData.get("availability") as string,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Only save bio if the package supports it
+    if (pkg.hasBio) {
+      updateData.bio = formData.get("bio") as string;
+    }
+
     const { error } = await supabase
       .from("student_profiles")
-      .update({
-        full_name: formData.get("full_name") as string,
-        bio: formData.get("bio") as string,
-        skills,
-        education: formData.get("education") as string,
-        availability: formData.get("availability") as string,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq("id", user.id);
 
     if (error) return { error: error.message };
