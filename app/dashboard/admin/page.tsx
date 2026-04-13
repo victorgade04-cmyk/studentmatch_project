@@ -161,7 +161,7 @@ export default function AdminDashboard() {
 
       {/* ── BESØGSSTATISTIK ── */}
       <a
-        href="https://vercel.com/victorgade04-cmyk/studentmatch-project-dcz2/analytics"
+        href="https://vercel.com/victorgade04-cmyks-projects/studentmatch-project-dcz2/analytics"
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center justify-between bg-white border border-gray-100 rounded-xl p-5 hover:border-gray-900 hover:shadow-sm transition-all mb-8 mt-3 group"
