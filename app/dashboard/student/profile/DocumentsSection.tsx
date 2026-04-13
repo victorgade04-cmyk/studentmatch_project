@@ -23,6 +23,7 @@ export default function DocumentsSection({ userId, pkgId }: Props) {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [openingId, setOpeningId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -123,6 +124,21 @@ export default function DocumentsSection({ userId, pkgId }: Props) {
     setDeletingId(null);
   }
 
+  async function handleOpen(doc: Doc) {
+    setError(null);
+    setOpeningId(doc.id);
+    const supabase = createClient();
+    const { data, error: urlErr } = await supabase.storage
+      .from("student-documents")
+      .createSignedUrl(doc.file_path, 60);
+    setOpeningId(null);
+    if (urlErr || !data?.signedUrl) {
+      setError("Kunne ikke åbne filen. Prøv igen.");
+      return;
+    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  }
+
   function formatSize(bytes: number) {
     return `${Math.round(bytes / 1024)} KB`;
   }
@@ -171,6 +187,14 @@ export default function DocumentsSection({ userId, pkgId }: Props) {
                 <p className="text-sm font-medium text-gray-900 truncate">{doc.file_name}</p>
                 <p className="text-xs text-gray-400">{formatSize(doc.file_size)}</p>
               </div>
+              <button
+                type="button"
+                onClick={() => handleOpen(doc)}
+                disabled={openingId === doc.id}
+                className="text-xs font-semibold text-gray-600 hover:text-gray-900 disabled:opacity-50 transition-colors flex-shrink-0"
+              >
+                {openingId === doc.id ? "Åbner…" : "Åbn"}
+              </button>
               <button
                 type="button"
                 onClick={() => handleDelete(doc)}
