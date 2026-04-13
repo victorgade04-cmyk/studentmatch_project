@@ -285,75 +285,34 @@ export default function HomePage() {
 
           {/* Company pricing */}
           <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6">For virksomheder</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-            {/* Starter */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-7 hover:bg-white/10 transition-colors">
-              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Starter</p>
-              <div className="flex items-end gap-1 mb-1">
-                <span className="text-5xl font-black text-white">0</span>
-                <span className="text-xl text-gray-400 mb-1.5">kr</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-16">
+            {[
+              { name: "Startup", price: "500", employees: "1–10 medarbejdere", jobs: "Maks. 2 aktive jobopslag" },
+              { name: "Small", price: "2.000", employees: "11–50 medarbejdere", jobs: "Maks. 5 aktive jobopslag" },
+              { name: "Medium", price: "5.000", employees: "51–100 medarbejdere", jobs: "Maks. 10 aktive jobopslag" },
+              { name: "Enterprise", price: "10.000", employees: "100+ medarbejdere", jobs: "Ubegrænsede jobopslag" },
+            ].map((tier) => (
+              <div key={tier.name} className="bg-white/5 border border-white/10 rounded-2xl p-7 hover:bg-white/10 transition-colors">
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">{tier.name}</p>
+                <div className="flex items-end gap-1 mb-1">
+                  <span className="text-4xl font-black text-white">{tier.price}</span>
+                  <span className="text-lg text-gray-400 mb-1">kr/md</span>
+                </div>
+                <p className="text-gray-500 text-sm mb-6">Pr. måned</p>
+                <ul className="space-y-3 mb-8">
+                  {[tier.employees, tier.jobs].map((f) => (
+                    <li key={f} className="flex items-center gap-2.5 text-sm text-gray-300">
+                      <span className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-xs flex-shrink-0">✓</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/login"
+                  className="block text-center py-2.5 rounded-xl border border-white/20 text-white text-sm font-semibold hover:bg-white/10 transition-colors">
+                  Kom i gang
+                </Link>
               </div>
-              <p className="text-gray-500 text-sm mb-6">For altid — ingen skjulte gebyrer</p>
-              <ul className="space-y-3 mb-8">
-                {["Opret gratis profil", "Se opslag og virksomheder", "Modtag op til 3 tilbud", "Basis support"].map((f) => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm text-gray-300">
-                    <span className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-xs">✓</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/login"
-                className="block text-center py-2.5 rounded-xl border border-white/20 text-white text-sm font-semibold hover:bg-white/10 transition-colors">
-                Kom i gang
-              </Link>
-            </div>
-
-            {/* Growth */}
-            <div className="bg-white rounded-2xl p-7 relative shadow-2xl shadow-black/30 scale-105">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gray-900 border border-white/20 text-white text-xs font-bold px-4 py-1 rounded-full">
-                Mest populær
-              </div>
-              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Growth</p>
-              <div className="flex items-end gap-1 mb-1">
-                <span className="text-5xl font-black text-gray-900">499</span>
-                <span className="text-xl text-gray-500 mb-1.5">kr/md</span>
-              </div>
-              <p className="text-gray-500 text-sm mb-6">For virksomheder der vækster</p>
-              <ul className="space-y-3 mb-8">
-                {["Ubegrænsede opslag", "Prioriteret visning", "Ubegrænsede tilbud", "Direkte kontakt til studerende", "Prioriteret support"].map((f) => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm text-gray-700">
-                    <span className="w-4 h-4 rounded-full bg-gray-900 flex items-center justify-center text-xs text-white">✓</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/login"
-                className="block text-center py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-colors">
-                Start prøveperiode
-              </Link>
-            </div>
-
-            {/* Platform fee */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-7 hover:bg-white/10 transition-colors">
-              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Platform fee</p>
-              <div className="flex items-end gap-1 mb-1">
-                <span className="text-5xl font-black text-white">10</span>
-                <span className="text-xl text-gray-400 mb-1.5">–15%</span>
-              </div>
-              <p className="text-gray-500 text-sm mb-6">Kun ved gennemføret samarbejde</p>
-              <ul className="space-y-3 mb-8">
-                {["Betales kun ved match", "Inkluderer sikker betaling", "Faktura sendes automatisk", "Ingen opstartsgebyr"].map((f) => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm text-gray-300">
-                    <span className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-xs">✓</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/login"
-                className="block text-center py-2.5 rounded-xl border border-white/20 text-white text-sm font-semibold hover:bg-white/10 transition-colors">
-                Læs mere
-              </Link>
-            </div>
+            ))}
           </div>
 
           {/* Student pricing */}
@@ -593,9 +552,10 @@ export default function HomePage() {
               <div>
                 <p className="text-white font-semibold mb-3">Priser</p>
                 <div className="space-y-2">
-                  <span className="block">Starter — 0 kr</span>
-                  <span className="block">Growth — 499 kr/md</span>
-                  <span className="block">Platform fee 10–15%</span>
+                  <span className="block">Startup — 500 kr/md</span>
+                  <span className="block">Small — 2.000 kr/md</span>
+                  <span className="block">Medium — 5.000 kr/md</span>
+                  <span className="block">Enterprise — 10.000 kr/md</span>
                 </div>
               </div>
             </div>

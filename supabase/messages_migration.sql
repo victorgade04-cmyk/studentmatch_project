@@ -55,3 +55,5 @@ CREATE POLICY "Users send messages in their conversations" ON public.messages
 -- Enable real-time
 ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.conversations;
+open -a TextEdit ~/Downloads/studentmatch_project/supabase/package_migration.sql
+
