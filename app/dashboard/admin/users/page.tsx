@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import Link from "next/link";
 import { setHourlyRate, setStudentPackage, updateUserRole } from "../actions";
 import { PACKAGE_BADGE, PackageId } from "@/lib/packages";
 
@@ -52,6 +53,7 @@ export default function AdminUsersPage() {
               <th className="px-6 py-3 text-left">Hourly Rate (kr/hr)</th>
               <th className="px-6 py-3 text-left">Pakke</th>
               <th className="px-6 py-3 text-left">Joined</th>
+              <th className="px-6 py-3"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -192,6 +194,16 @@ function UserRow({ user, onUpdated }: { user: User; onUpdated: () => void }) {
       </td>
       <td className="px-6 py-3 text-gray-400 text-xs">
         {new Date(user.created_at).toLocaleDateString()}
+      </td>
+      <td className="px-6 py-3">
+        {user.role === "student" && (
+          <Link
+            href={`/dashboard/admin/students/${user.id}`}
+            className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors"
+          >
+            Profil →
+          </Link>
+        )}
       </td>
     </tr>
   );
