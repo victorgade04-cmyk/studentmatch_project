@@ -77,3 +77,58 @@ export const PACKAGE_BADGE: Record<PackageId, string> = {
   silver: "bg-gray-100 text-gray-600",
   gold: "bg-yellow-100 text-yellow-700",
 };
+
+// ── Company packages ────────────────────────────────────────────────────────
+
+export type CompanyPackageId = "startup" | "small" | "medium" | "enterprise";
+
+export interface CompanyPackageDef {
+  id: CompanyPackageId;
+  name: string;
+  employees: string;
+  price: string;
+  priceNum: number;
+  maxJobs: number | null; // null = unlimited
+}
+
+export const COMPANY_PACKAGES: Record<CompanyPackageId, CompanyPackageDef> = {
+  startup: {
+    id: "startup",
+    name: "Startup",
+    employees: "1-10",
+    price: "500 kr/md",
+    priceNum: 500,
+    maxJobs: 2,
+  },
+  small: {
+    id: "small",
+    name: "Small",
+    employees: "11-50",
+    price: "2.000 kr/md",
+    priceNum: 2000,
+    maxJobs: 5,
+  },
+  medium: {
+    id: "medium",
+    name: "Medium",
+    employees: "51-100",
+    price: "5.000 kr/md",
+    priceNum: 5000,
+    maxJobs: 10,
+  },
+  enterprise: {
+    id: "enterprise",
+    name: "Enterprise",
+    employees: "100+",
+    price: "10.000 kr/md",
+    priceNum: 10000,
+    maxJobs: null,
+  },
+};
+
+export const COMPANY_PACKAGE_BADGE: Record<CompanyPackageId, string> = {
+  startup:    "bg-sky-100 text-sky-700",
+  small:      "bg-violet-100 text-violet-700",
+  medium:     "bg-orange-100 text-orange-700",
+  enterprise: "bg-emerald-100 text-emerald-700",
+};
