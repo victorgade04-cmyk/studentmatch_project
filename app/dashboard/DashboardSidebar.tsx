@@ -22,6 +22,7 @@ const navLinks = {
   company: [
     { href: "/dashboard/company", label: "Oversigt" },
     { href: "/dashboard/company/profile", label: "Virksomhedsprofil" },
+    { href: "/dashboard/company/package", label: "Skift pakke" },
     { href: "/dashboard/company/jobs", label: "Mine jobs" },
     { href: "/dashboard/company/students", label: "Find studerende" },
     { href: "/dashboard/messages", label: "Beskeder" },
