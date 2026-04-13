@@ -136,13 +136,9 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div className="px-4 pb-4 flex gap-2">
+            <div className="px-4 pb-4">
               <Link href="/login"
-                className="flex-1 text-center py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                Åbn dashboard
-              </Link>
-              <Link href="/login"
-                className="flex-1 text-center py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                className="block text-center py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
                 Opret gratis konto
               </Link>
             </div>
