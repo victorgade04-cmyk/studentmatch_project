@@ -10,6 +10,9 @@ interface Stats {
   newSignups7d: number;
   messagesSent: number;
   docsUploaded: number;
+  activeJobs: number;
+  totalApplications: number;
+  pendingApplications: number;
 }
 
 interface DayBucket {
@@ -20,7 +23,8 @@ interface DayBucket {
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
-  const [chart, setChart] = useState<DayBucket[]>([]);
+  const [studentChart, setStudentChart] = useState<DayBucket[]>([]);
+  const [companyChart, setCompanyChart] = useState<DayBucket[]>([]);
   const [recentUsers, setRecentUsers] = useState<any[]>([]);
   const [pendingApps, setPendingApps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,8 +45,12 @@ export default function AdminDashboard() {
       supabase.from("users").select("*", { count: "exact", head: true }).gte("created_at", ago(7)),
       supabase.from("messages").select("*", { count: "exact", head: true }),
       supabase.from("student_documents").select("*", { count: "exact", head: true }),
+      supabase.from("jobs").select("*", { count: "exact", head: true }).eq("status", "open"),
+      supabase.from("applications").select("*", { count: "exact", head: true }),
+      supabase.from("applications").select("*", { count: "exact", head: true }).eq("status", "pending"),
       // Raw rows for chart grouping — only created_at needed
       supabase.from("users").select("created_at").gte("created_at", ago(14)),
+      supabase.from("users").select("created_at").eq("role", "company").gte("created_at", ago(14)),
       supabase.from("users").select("id, email, role, created_at").order("created_at", { ascending: false }).limit(8),
       supabase
         .from("applications")
@@ -56,7 +64,11 @@ export default function AdminDashboard() {
       { count: newSignups },
       { count: msgCount },
       { count: docCount },
+      { count: activeJobCount },
+      { count: totalAppCount },
+      { count: pendingAppCount },
       { data: rawSignups },
+      { data: rawCompanySignups },
       { data: users },
       { data: apps },
     ]) => {
@@ -66,23 +78,30 @@ export default function AdminDashboard() {
         newSignups7d: newSignups ?? 0,
         messagesSent: msgCount ?? 0,
         docsUploaded: docCount ?? 0,
+        activeJobs: activeJobCount ?? 0,
+        totalApplications: totalAppCount ?? 0,
+        pendingApplications: pendingAppCount ?? 0,
       });
 
-      // Build ordered 14-day buckets initialised to 0
-      const buckets: DayBucket[] = [];
-      for (let i = 13; i >= 0; i--) {
-        const d = new Date(now);
-        d.setDate(d.getDate() - i);
-        const date = d.toISOString().slice(0, 10);
-        buckets.push({ date, label: `${d.getDate()}/${d.getMonth() + 1}`, count: 0 });
-      }
-      const idx: Record<string, number> = Object.fromEntries(buckets.map((b, i) => [b.date, i]));
-      rawSignups?.forEach(({ created_at }) => {
-        const key = (created_at as string).slice(0, 10);
-        if (key in idx) buckets[idx[key]].count++;
-      });
-      setChart(buckets);
+      // Helper: build 14-day buckets from a raw created_at list
+      const buildBuckets = (rows: { created_at: string }[] | null): DayBucket[] => {
+        const buckets: DayBucket[] = [];
+        for (let i = 13; i >= 0; i--) {
+          const d = new Date(now);
+          d.setDate(d.getDate() - i);
+          const date = d.toISOString().slice(0, 10);
+          buckets.push({ date, label: `${d.getDate()}/${d.getMonth() + 1}`, count: 0 });
+        }
+        const idx: Record<string, number> = Object.fromEntries(buckets.map((b, i) => [b.date, i]));
+        rows?.forEach(({ created_at }) => {
+          const key = (created_at as string).slice(0, 10);
+          if (key in idx) buckets[idx[key]].count++;
+        });
+        return buckets;
+      };
 
+      setStudentChart(buildBuckets(rawSignups));
+      setCompanyChart(buildBuckets(rawCompanySignups));
       setRecentUsers((users as any[]) || []);
       setPendingApps((apps as any[]) || []);
       setLoading(false);
@@ -96,8 +115,6 @@ export default function AdminDashboard() {
       </div>
     );
   }
-
-  const maxCount = Math.max(...chart.map((b) => b.count), 1);
 
   return (
     <div className="p-8 max-w-6xl">
@@ -126,51 +143,35 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* ── STAT CARDS ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
-        <StatCard label="Studerende" value={stats!.students} dark />
-        <StatCard label="Virksomheder" value={stats!.companies} />
+      {/* ── STUDERENDE ── */}
+      <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Studerende</p>
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
+        <StatCard label="Studerende i alt" value={stats!.students} dark />
         <StatCard label="Nye (7 dage)" value={stats!.newSignups7d} />
         <StatCard label="Beskeder sendt" value={stats!.messagesSent} />
         <StatCard label="Dokumenter uploadet" value={stats!.docsUploaded} />
+        <StatCard label="Virksomheder i alt" value={stats!.companies} />
       </div>
 
-      {/* ── SIGNUP CHART ── */}
-      <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
-        <p className="text-sm font-bold text-gray-900 mb-1">Nye tilmeldinger</p>
-        <p className="text-xs text-gray-400 mb-5">Pr. dag — seneste 14 dage</p>
+      <BarChart
+        title="Nye tilmeldinger"
+        subtitle="Alle roller — pr. dag, seneste 14 dage"
+        buckets={studentChart}
+      />
 
-        {/* Bars */}
-        <div className="flex items-end gap-1.5 h-28">
-          {chart.map((b) => {
-            const heightPct = maxCount === 0 ? 0 : (b.count / maxCount) * 100;
-            const isEmpty = b.count === 0;
-            return (
-              <div key={b.date} className="flex-1 flex flex-col items-center gap-1 group relative min-w-0">
-                {/* Tooltip */}
-                <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                  {b.count}
-                </div>
-                <div className="w-full flex items-end justify-center" style={{ height: "100%" }}>
-                  <div
-                    className={`w-full rounded-t-sm transition-all ${isEmpty ? "bg-gray-100" : "bg-gray-900"}`}
-                    style={{ height: isEmpty ? "4px" : `${Math.max(heightPct, 6)}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* X-axis labels */}
-        <div className="flex gap-1.5 mt-2">
-          {chart.map((b) => (
-            <div key={b.date} className="flex-1 text-center text-[10px] text-gray-400 font-medium truncate min-w-0">
-              {b.label}
-            </div>
-          ))}
-        </div>
+      {/* ── VIRKSOMHEDER ── */}
+      <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3 mt-8">Virksomheder</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+        <StatCard label="Aktive jobopslag" value={stats!.activeJobs} dark />
+        <StatCard label="Ansøgninger i alt" value={stats!.totalApplications} />
+        <StatCard label="Afventende ansøgninger" value={stats!.pendingApplications} />
       </div>
+
+      <BarChart
+        title="Nye virksomheder"
+        subtitle="Rolle = company — pr. dag, seneste 14 dage"
+        buckets={companyChart}
+      />
 
       {/* ── RECENT USERS + PENDING APPS ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
@@ -239,6 +240,42 @@ export default function AdminDashboard() {
             <p className="font-bold text-sm text-gray-900 mb-1">{l.label}</p>
             <p className="text-xs text-gray-400">{l.desc}</p>
           </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BarChart({ title, subtitle, buckets }: { title: string; subtitle: string; buckets: DayBucket[] }) {
+  const maxCount = Math.max(...buckets.map((b) => b.count), 1);
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 p-6 mb-5">
+      <p className="text-sm font-bold text-gray-900 mb-1">{title}</p>
+      <p className="text-xs text-gray-400 mb-5">{subtitle}</p>
+      <div className="flex items-end gap-1.5 h-28">
+        {buckets.map((b) => {
+          const heightPct = (b.count / maxCount) * 100;
+          const isEmpty = b.count === 0;
+          return (
+            <div key={b.date} className="flex-1 flex flex-col items-center gap-1 group relative min-w-0">
+              <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                {b.count}
+              </div>
+              <div className="w-full flex items-end justify-center" style={{ height: "100%" }}>
+                <div
+                  className={`w-full rounded-t-sm transition-all ${isEmpty ? "bg-gray-100" : "bg-gray-900"}`}
+                  style={{ height: isEmpty ? "4px" : `${Math.max(heightPct, 6)}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex gap-1.5 mt-2">
+        {buckets.map((b) => (
+          <div key={b.date} className="flex-1 text-center text-[10px] text-gray-400 font-medium truncate min-w-0">
+            {b.label}
+          </div>
         ))}
       </div>
     </div>
