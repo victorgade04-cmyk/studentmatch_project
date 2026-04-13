@@ -1,7 +1,5 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 import {
   COMPANY_PACKAGES,
   COMPANY_PACKAGE_BADGE,
@@ -10,45 +8,20 @@ import {
 
 const packageOrder: CompanyPackageId[] = ["startup", "small", "medium", "enterprise"];
 
-export default function CompanyPackagePage() {
-  const [currentPkg, setCurrentPkg] = useState<CompanyPackageId>("startup");
-  const [loading, setLoading] = useState(true);
+export default async function CompanyPackagePage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
-  useEffect(() => {
-    const supabase = createClient();
+  const { data } = await supabase
+    .from("company_profiles")
+    .select("*")
+    .eq("id", user.id)
+    .maybeSingle();
 
-    (async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        // select("*") avoids a 400 if the package column hasn't been added yet.
-        // maybeSingle() returns null data (not an error) when no profile row exists.
-        const { data } = await supabase
-          .from("company_profiles")
-          .select("*")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        const pkg = (data as any)?.package as CompanyPackageId | undefined;
-        if (pkg && pkg in COMPANY_PACKAGES) {
-          setCurrentPkg(pkg);
-        }
-      } catch {
-        // leave currentPkg at the "startup" default
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="p-8 flex items-center justify-center h-64">
-        <div className="text-gray-400 text-sm">Indlæser…</div>
-      </div>
-    );
-  }
+  const pkg = (data as any)?.package as CompanyPackageId | undefined;
+  const currentPkg: CompanyPackageId =
+    pkg && pkg in COMPANY_PACKAGES ? pkg : "startup";
 
   return (
     <div className="p-8 max-w-4xl">
