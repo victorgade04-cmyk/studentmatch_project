@@ -159,6 +159,22 @@ export default function AdminDashboard() {
         buckets={studentChart}
       />
 
+      {/* ── BESØGSSTATISTIK ── */}
+      <a
+        href="https://vercel.com/victorgade04-cmyk/studentmatch-project-dcz2/analytics"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-between bg-white border border-gray-100 rounded-xl p-5 hover:border-gray-900 hover:shadow-sm transition-all mb-8 mt-3 group"
+      >
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Besøgsstatistik</p>
+          <p className="text-sm font-bold text-gray-900 group-hover:underline">Se besøgsstatistik på Vercel →</p>
+        </div>
+        <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center flex-shrink-0">
+          <span className="text-white text-xs font-bold">▲</span>
+        </div>
+      </a>
+
       {/* ── VIRKSOMHEDER ── */}
       <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3 mt-8">Virksomheder</p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
