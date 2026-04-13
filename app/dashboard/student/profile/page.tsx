@@ -124,6 +124,8 @@ export default function StudentProfilePage() {
           )}
         </div>
 
+        {userId && <DocumentsSection userId={userId} pkgId={pkgId} />}
+
         <Field
           label="Uddannelse"
           name="education"
@@ -168,9 +170,6 @@ export default function StudentProfilePage() {
         </button>
       </form>
 
-      {userId && (
-        <DocumentsSection userId={userId} pkgId={pkgId} />
-      )}
     </div>
   );
 }
