@@ -5,11 +5,13 @@ import { updateStudentProfile } from "../actions";
 import { createClient } from "@/lib/supabase/client";
 import { PACKAGES, PACKAGE_BADGE, PackageId } from "@/lib/packages";
 import Link from "next/link";
+import DocumentsSection from "./DocumentsSection";
 
 const initial: { error?: string; success?: string } = {};
 
 export default function StudentProfilePage() {
   const [profile, setProfile] = useState<any>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [state, action, pending] = useActionState(updateStudentProfile, initial);
@@ -18,6 +20,7 @@ export default function StudentProfilePage() {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
+      setUserId(user.id);
       supabase
         .from("student_profiles")
         .select("full_name, bio, skills, education, availability, hourly_rate, package")
@@ -164,6 +167,10 @@ export default function StudentProfilePage() {
           {pending ? "Gemmer…" : "Gem profil"}
         </button>
       </form>
+
+      {userId && (
+        <DocumentsSection userId={userId} pkgId={pkgId} />
+      )}
     </div>
   );
 }
