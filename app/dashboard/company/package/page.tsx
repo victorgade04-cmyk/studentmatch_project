@@ -11,23 +11,35 @@ import {
 const packageOrder: CompanyPackageId[] = ["startup", "small", "medium", "enterprise"];
 
 export default function CompanyPackagePage() {
-  const [currentPkg, setCurrentPkg] = useState<CompanyPackageId | null>(null);
+  const [currentPkg, setCurrentPkg] = useState<CompanyPackageId>("startup");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return;
-      supabase
-        .from("company_profiles")
-        .select("package")
-        .eq("id", user.id)
-        .single()
-        .then(({ data }) => {
-          setCurrentPkg((data?.package as CompanyPackageId) || "startup");
-          setLoading(false);
-        });
-    });
+
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // select("*") avoids a 400 if the package column hasn't been added yet.
+        // maybeSingle() returns null data (not an error) when no profile row exists.
+        const { data } = await supabase
+          .from("company_profiles")
+          .select("*")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        const pkg = (data as any)?.package as CompanyPackageId | undefined;
+        if (pkg && pkg in COMPANY_PACKAGES) {
+          setCurrentPkg(pkg);
+        }
+      } catch {
+        // leave currentPkg at the "startup" default
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
   if (loading) {
