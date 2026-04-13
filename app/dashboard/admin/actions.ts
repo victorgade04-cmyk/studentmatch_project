@@ -69,6 +69,33 @@ export async function updateUserRole(
   }
 }
 
+export async function setStudentPackage(
+  _prev: { error?: string; success?: string },
+  formData: FormData
+): Promise<{ error?: string; success?: string }> {
+  try {
+    await assertAdmin();
+    const admin = createAdminClient();
+    const studentId = formData.get("studentId") as string;
+    const pkg = formData.get("package") as string;
+
+    if (!["bronze", "silver", "gold"].includes(pkg)) return { error: "Invalid package." };
+
+    const { error } = await admin
+      .from("student_profiles")
+      .update({ package: pkg })
+      .eq("id", studentId);
+
+    if (error) return { error: error.message };
+    revalidatePath("/dashboard/admin/users");
+    revalidatePath("/dashboard/student/profile");
+    revalidatePath("/dashboard/student");
+    return { success: "ok" };
+  } catch (e: any) {
+    return { error: e.message };
+  }
+}
+
 export async function updateApplicationStatus(
   _prev: { error?: string; success?: string },
   formData: FormData

@@ -1,14 +1,15 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { setHourlyRate, updateUserRole } from "../actions";
+import { setHourlyRate, setStudentPackage, updateUserRole } from "../actions";
+import { PACKAGE_BADGE, PackageId } from "@/lib/packages";
 
 type User = {
   id: string;
   email: string;
   role: string;
   created_at: string;
-  student_profiles: { full_name: string | null; hourly_rate: number | null } | null;
+  student_profiles: { full_name: string | null; hourly_rate: number | null; package: string | null } | null;
 };
 
 // This page is a client component because it has inline mini-forms
@@ -24,7 +25,7 @@ export default function AdminUsersPage() {
     const supabase = createClient();
     supabase
       .from("users")
-      .select("id, email, role, created_at, student_profiles(full_name, hourly_rate)")
+      .select("id, email, role, created_at, student_profiles(full_name, hourly_rate, package)")
       .order("created_at", { ascending: false })
       .then(({ data }) => {
         setUsers((data as unknown as User[]) || []);
@@ -49,6 +50,7 @@ export default function AdminUsersPage() {
               <th className="px-6 py-3 text-left">Role</th>
               <th className="px-6 py-3 text-left">Name</th>
               <th className="px-6 py-3 text-left">Hourly Rate (kr/hr)</th>
+              <th className="px-6 py-3 text-left">Pakke</th>
               <th className="px-6 py-3 text-left">Joined</th>
             </tr>
           </thead>
@@ -59,7 +61,7 @@ export default function AdminUsersPage() {
                 const supabase = createClient();
                 supabase
                   .from("users")
-                  .select("id, email, role, created_at, student_profiles(full_name, hourly_rate)")
+                  .select("id, email, role, created_at, student_profiles(full_name, hourly_rate, package)")
                   .order("created_at", { ascending: false })
                   .then(({ data }) => setUsers((data as unknown as User[]) || []));
               }} />
@@ -91,6 +93,16 @@ function UserRow({ user, onUpdated }: { user: User; onUpdated: () => void }) {
     },
     {}
   );
+  const [pkgState, pkgAction, savingPkg] = useActionState(
+    async (prev: any, fd: FormData) => {
+      const res = await setStudentPackage(prev, fd);
+      if (res.success) onUpdated();
+      return res;
+    },
+    {}
+  );
+
+  const currentPkg = (user.student_profiles?.package as PackageId) || "bronze";
 
   return (
     <tr className="hover:bg-gray-50/50">
@@ -141,6 +153,38 @@ function UserRow({ user, onUpdated }: { user: User; onUpdated: () => void }) {
             </button>
             {rateState?.success && <span className="text-xs text-green-600">✓</span>}
             {rateState?.error && <span className="text-xs text-red-500">{rateState.error}</span>}
+          </form>
+        ) : (
+          <span className="text-gray-300 text-xs">N/A</span>
+        )}
+      </td>
+      <td className="px-6 py-3">
+        {user.role === "student" ? (
+          <form action={pkgAction} className="flex items-center gap-2">
+            <input type="hidden" name="studentId" value={user.id} />
+            <select
+              name="package"
+              defaultValue={currentPkg}
+              key={currentPkg}
+              className="border border-gray-200 rounded-lg text-xs px-2 py-1 focus:outline-none focus:ring-2 focus:ring-gray-900"
+            >
+              <option value="bronze">Bronze</option>
+              <option value="silver">Silver</option>
+              <option value="gold">Gold</option>
+            </select>
+            <button
+              type="submit"
+              disabled={savingPkg}
+              className="text-xs text-gray-700 hover:underline disabled:opacity-50"
+            >
+              {savingPkg ? "…" : "Set"}
+            </button>
+            {pkgState?.success === "ok" && (
+              <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${PACKAGE_BADGE[currentPkg]}`}>
+                ✓
+              </span>
+            )}
+            {pkgState?.error && <span className="text-xs text-red-500">{pkgState.error}</span>}
           </form>
         ) : (
           <span className="text-gray-300 text-xs">N/A</span>
