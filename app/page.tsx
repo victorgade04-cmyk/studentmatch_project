@@ -147,7 +147,7 @@ export default function HomePage() {
                       : "text-gray-500 hover:bg-gray-50"
                   }`}
                 >
-                  Søg {tab}
+                  {tab === "studerende" ? "Find kandidat" : "Find virksomhed"}
                 </button>
               ))}
             </div>
