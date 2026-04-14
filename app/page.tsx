@@ -184,7 +184,7 @@ export default function HomePage() {
       <section className="py-14 border-y border-gray-100 bg-gray-50">
         <div className="max-w-3xl mx-auto px-5 grid grid-cols-3 gap-8 text-center">
           {[
-            { value: stats.students, label: "Studerende" },
+            { value: stats.students, label: "Arbejdssøgende" },
             { value: stats.companies, label: "Virksomheder" },
             { value: stats.applications, label: "Forespørgsler" },
           ].map((s) => (
@@ -208,14 +208,13 @@ export default function HomePage() {
             {/* Card 1 */}
             <div className="group relative bg-gray-900 rounded-2xl p-8 overflow-hidden hover:shadow-2xl transition-shadow">
               <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-16 translate-x-16" />
-              <h3 className="text-2xl font-black text-white mb-3">Find studentermedhjælper</h3>
+              <h3 className="text-2xl font-black text-white mb-3">Find den rette hjælp</h3>
               <p className="text-gray-400 leading-relaxed mb-6">
-                Rekruttér ambitiøse studerende til fast deltidsarbejde. Gennemsnitstimepris
-                på 150–200 kr/t — fleksibelt og engageret.
+                Rekruttér motiverede folk til opgaver, deltidsarbejde eller timebasis — uanset om de er studerende, på sabbatår eller søger ekstra arbejde ved siden af.
               </p>
               <Link href="/login"
                 className="inline-flex items-center gap-2 bg-white text-gray-900 text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-colors">
-                Find studerende <span>→</span>
+                Find kandidater <span>→</span>
               </Link>
             </div>
 
@@ -225,7 +224,7 @@ export default function HomePage() {
               <h3 className="text-2xl font-black text-gray-900 mb-3">Få hjælp på timebasis</h3>
               <p className="text-gray-500 leading-relaxed mb-6">
                 Har du en specifik opgave? Post din opgave og modtag tilbud fra
-                studerende inden for 24 timer. Betal kun for udført arbejde.
+                kandidater inden for 24 timer. Betal kun for udført arbejde.
               </p>
               <Link href="/login"
                 className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-gray-700 transition-colors">
@@ -347,7 +346,7 @@ export default function HomePage() {
 
           {/* Student pricing */}
           <div className="border-t border-white/10 pt-14">
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6">For studerende</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6">For arbejdssøgende</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Bronze */}
               <div className="bg-white/5 border border-white/10 rounded-2xl p-7 hover:bg-white/10 transition-colors">
@@ -494,12 +493,12 @@ export default function HomePage() {
                 a: "Alle med ledig tid kan oprette profil — studerende, folk på sabbatår, deltidsansatte og andre. Det eneste krav er, at du har tid og kompetencer at tilbyde. Virksomheder af alle størrelser er velkomne — fra startups til etablerede selskaber.",
               },
               {
-                q: "Hvad koster en studentermedhjælper?",
-                a: "Gennemsnitstimeprisen ligger på 150–200 kr/t. Den konkrete pris aftales mellem virksomheden og den studerende og sættes af vores admin baseret på profil og kompetencer.",
+                q: "Hvad koster det at hyre via StudentMatch?",
+                a: "Gennemsnitstimeprisen ligger på 150–200 kr/t. Den konkrete timepris aftales mellem virksomheden og kandidaten og sættes af vores admin baseret på profil og kompetencer.",
               },
               {
                 q: "Hvordan sikres betalingen?",
-                a: "Alle betalinger håndteres sikkert via platformen. Vi udbetaler til den studerende, efter virksomheden har godkendt det udførte arbejde.",
+                a: "Alle betalinger håndteres sikkert via platformen. Vi udbetaler til kandidaten, efter virksomheden har godkendt det udførte arbejde.",
               },
               {
                 q: "Kan jeg ansætte fast på deltid?",
