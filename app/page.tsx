@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 type Stats = { students: number; companies: number; applications: number; services: number };
 
@@ -10,12 +11,20 @@ export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [stats, setStats] = useState<Stats>({ students: 0, companies: 0, applications: 0, services: 2 });
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     fetch("/api/stats")
       .then((r) => r.json())
       .then(setStats)
       .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+    });
   }, []);
 
   return (
@@ -39,18 +48,26 @@ export default function HomePage() {
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
-            <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-3 py-1.5">
-              Login
-            </Link>
-            <Link href="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-3 py-1.5">
-              Dashboard
-            </Link>
-            <Link
-              href="/login"
-              className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-colors"
-            >
-              Opret konto
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                href="/dashboard"
+                className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-colors"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-3 py-1.5">
+                  Login
+                </Link>
+                <Link
+                  href="/login"
+                  className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-colors"
+                >
+                  Opret konto
+                </Link>
+              </>
+            )}
           </div>
 
           <button
@@ -73,8 +90,14 @@ export default function HomePage() {
               </a>
             ))}
             <div className="flex gap-3 pt-2">
-              <Link href="/login" className="text-sm font-medium text-gray-600 border border-gray-200 rounded-lg px-4 py-2 hover:bg-gray-50 transition-colors">Login</Link>
-              <Link href="/login" className="text-sm font-semibold bg-gray-900 text-white rounded-lg px-4 py-2 hover:bg-gray-700 transition-colors">Opret konto</Link>
+              {isLoggedIn ? (
+                <Link href="/dashboard" className="text-sm font-semibold bg-gray-900 text-white rounded-lg px-4 py-2 hover:bg-gray-700 transition-colors">Dashboard</Link>
+              ) : (
+                <>
+                  <Link href="/login" className="text-sm font-medium text-gray-600 border border-gray-200 rounded-lg px-4 py-2 hover:bg-gray-50 transition-colors">Login</Link>
+                  <Link href="/login" className="text-sm font-semibold bg-gray-900 text-white rounded-lg px-4 py-2 hover:bg-gray-700 transition-colors">Opret konto</Link>
+                </>
+              )}
             </div>
           </div>
         )}
