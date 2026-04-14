@@ -237,7 +237,7 @@ export default function DocumentsSection({ userId, pkgId }: Props) {
       )}
 
       <p className="text-xs text-gray-400 mt-1.5">
-        Kun PDF · Maks. 5 MB · Kun synlig for virksomheder og admins
+        Valgfrit — upload dit CV eller andre relevante dokumenter. Kun PDF · Maks. 5 MB · Kun synlig for virksomheder og admins
       </p>
     </div>
   );
