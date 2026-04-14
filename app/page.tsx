@@ -47,8 +47,8 @@ export default function HomePage() {
           </Link>
 
           <div className="hidden lg:flex items-center gap-6 text-sm font-medium text-gray-500">
-            <a href="#services" className="hover:text-gray-900 transition-colors">Services</a>
-            <a href="#studerende" className="hover:text-gray-900 transition-colors">Studerende</a>
+            <a href="#ydelser" className="hover:text-gray-900 transition-colors">Ydelser</a>
+            <a href="#fordele" className="hover:text-gray-900 transition-colors">Fordele</a>
             <a href="#virksomheder" className="hover:text-gray-900 transition-colors">Virksomheder</a>
             <a href="#how" className="hover:text-gray-900 transition-colors">Sådan virker det</a>
           </div>
@@ -88,11 +88,16 @@ export default function HomePage() {
 
         {menuOpen && (
           <div className="lg:hidden border-t border-gray-100 bg-white px-5 py-4 space-y-3">
-            {["Services", "Studerende", "Virksomheder", "Sådan virker det"].map((item) => (
-              <a key={item} href={`#${item.toLowerCase().replace(/ /g, "-")}`}
+            {[
+              { label: "Ydelser", href: "#ydelser" },
+              { label: "Fordele", href: "#fordele" },
+              { label: "Virksomheder", href: "#virksomheder" },
+              { label: "Sådan virker det", href: "#how" },
+            ].map((item) => (
+              <a key={item.href} href={item.href}
                 className="block text-sm font-medium text-gray-600 hover:text-gray-900 py-1"
                 onClick={() => setMenuOpen(false)}>
-                {item}
+                {item.label}
               </a>
             ))}
             <div className="flex gap-3 pt-2">
@@ -118,14 +123,14 @@ export default function HomePage() {
           </div>
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-gray-900 leading-[1.05] tracking-tight mb-6">
-            En rigtig platform<br />
-            <span className="text-gray-400">for virksomheder</span><br />
-            og studerende
+            Har du ledig tid?<br />
+            <span className="text-gray-400">Bliv matchet med</span><br />
+            virksomheder
           </h1>
 
           <p className="text-lg text-gray-500 max-w-xl mx-auto mb-12 leading-relaxed">
-            Forbinder virksomheder med ambitiøse studerende. Find den rette hjælp —
-            hurtigt, fleksibelt og til en fair pris.
+            StudentMatch er for alle med ledig tid — studerende, sabbatår, deltidsansatte og freelancere.
+            Find opgaver og jobs der passer præcis til dig.
           </p>
 
           {/* Search widget */}
@@ -192,10 +197,10 @@ export default function HomePage() {
       </section>
 
       {/* ── SERVICES ── */}
-      <section id="services" className="py-24 px-5">
+      <section id="ydelser" className="py-24 px-5">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Services</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Ydelser</p>
             <h2 className="text-4xl font-black text-gray-900">Hvad kan vi hjælpe med?</h2>
           </div>
 
@@ -232,7 +237,7 @@ export default function HomePage() {
       </section>
 
       {/* ── FEATURES ── */}
-      <section id="studerende" className="py-24 px-5 bg-gray-50">
+      <section id="fordele" className="py-24 px-5 bg-gray-50">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Fordele</p>
@@ -242,16 +247,16 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
-                title: "Præcist match",
-                body: "Vores platform matcher virksomheder med studerende baseret på kompetencer, tilgængelighed og faglig baggrund.",
+                title: "Timebasis",
+                body: "Sæt din egen timepris og få betaling for præcis de timer du arbejder — ingen skjulte gebyrer eller binding.",
               },
               {
-                title: "Fleksibel hjælp",
-                body: "Vælg mellem fast ansættelse på deltid eller projektbaseret hjælp. Alt tilpasses din virksomheds behov.",
+                title: "Bliv fundet",
+                body: "Virksomheder kan finde og kontakte dig direkte via din profil. Du behøver ikke søge aktivt — lad mulighederne komme til dig.",
               },
               {
-                title: "Talent med potentiale",
-                body: "Studerende er motiverede, up-to-date med ny viden og klar til at bevise sig. Investér i fremtidens arbejdskraft i dag.",
+                title: "Jobsøgning",
+                body: "Søg og ansøg jobs som virksomheder har slået op — fra opgaver på 5 timer til faste deltidsstillinger.",
               },
             ].map((f) => (
               <div key={f.title} className="bg-white rounded-2xl p-7 border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all">
@@ -268,9 +273,9 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Opgavetyper</p>
-            <h2 className="text-4xl font-black text-gray-900">Hvad kan studerende hjælpe med?</h2>
+            <h2 className="text-4xl font-black text-gray-900">Hvad kan du hjælpe med?</h2>
             <p className="text-gray-500 mt-4 max-w-xl mx-auto">
-              Fra digitale opgaver til analyse og kommunikation — studerende besidder bred viden.
+              Fra digitale opgaver til analyse og kommunikation — vores brugere besidder bred viden og erfaring.
             </p>
           </div>
 
@@ -445,12 +450,11 @@ export default function HomePage() {
             <h2 className="text-4xl font-black text-gray-900">Sådan virker det</h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[
-              { step: "01", title: "Opret profil", body: "Registrér dig som studerende eller virksomhed på under 2 minutter." },
-              { step: "02", title: "Find match", body: "Søg i vores database eller post en opgave og modtag ansøgninger." },
-              { step: "03", title: "Tag kontakt", body: "Chat direkte med din match og aftal de konkrete vilkår." },
-              { step: "04", title: "Kom i gang", body: "Start samarbejdet og betal sikkert via platformen." },
+              { step: "01", title: "Opret din profil", body: "Beskriv dine kompetencer, tilgængelighed og timepris. Bliv fundet af virksomheder der søger præcis dét, du tilbyder." },
+              { step: "02", title: "Find opgaver og jobs", body: "Søg blandt virksomheders opslag — alt fra kortsigtede opgaver på få timer til faste deltidsstillinger." },
+              { step: "03", title: "Arbejd på dine præmisser", body: "Vælg om du vil arbejde på timebasis, projektbasis eller som fast deltidsansat." },
             ].map((s) => (
               <div key={s.step} className="relative">
                 <div className="bg-gray-50 rounded-2xl p-6 h-full border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all">
@@ -483,11 +487,11 @@ export default function HomePage() {
             {[
               {
                 q: "Er det gratis at oprette profil?",
-                a: "Ja, det er helt gratis at oprette en profil — både som studerende og virksomhed. Vi tager kun et lille platform-fee ved gennemførte samarbejder.",
+                a: "Ja, det er helt gratis at oprette en profil — både som arbejdssøgende og virksomhed. Du vælger selv, om du vil opgradere til en betalt pakke for flere funktioner.",
               },
               {
                 q: "Hvem kan bruge StudentMatch?",
-                a: "Alle studerende på videregående uddannelser kan oprette profil. Virksomheder af alle størrelser er velkomne — fra startups til etablerede selskaber.",
+                a: "Alle med ledig tid kan oprette profil — studerende, folk på sabbatår, deltidsansatte og andre. Det eneste krav er, at du har tid og kompetencer at tilbyde. Virksomheder af alle størrelser er velkomne — fra startups til etablerede selskaber.",
               },
               {
                 q: "Hvad koster en studentermedhjælper?",
@@ -498,8 +502,8 @@ export default function HomePage() {
                 a: "Alle betalinger håndteres sikkert via platformen. Vi udbetaler til den studerende, efter virksomheden har godkendt det udførte arbejde.",
               },
               {
-                q: "Kan jeg ansætte en studerende fast?",
-                a: "Absolut. Mange virksomheder starter med en opgave og ansætter efterfølgende fast på deltid. Vi faciliterer begge former for samarbejde.",
+                q: "Kan jeg ansætte fast på deltid?",
+                a: "Absolut. Mange virksomheder starter med en kortere opgave og ansætter efterfølgende fast på deltid. Vi faciliterer begge former for samarbejde.",
               },
             ].map((item, i) => (
               <div key={i} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
@@ -526,7 +530,7 @@ export default function HomePage() {
         <div className="max-w-2xl mx-auto">
           <h2 className="text-4xl font-black mb-4">Klar til at komme i gang?</h2>
           <p className="text-gray-400 mb-8 leading-relaxed">
-            Tilslut dig hundredvis af virksomheder og studerende, der allerede bruger StudentMatch til at skabe værdifulde samarbejder.
+            Tilslut dig hundredvis af virksomheder og arbejdssøgende, der allerede bruger StudentMatch til at skabe værdifulde samarbejder.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/login"
@@ -553,7 +557,7 @@ export default function HomePage() {
                 <span className="text-white font-bold">StudentMatch</span>
               </div>
               <p className="text-sm leading-relaxed max-w-xs">
-                Forbinder virksomheder med ambitiøse studerende siden 2026.
+                Forbinder virksomheder med mennesker med ledig tid siden 2026.
               </p>
             </div>
 
@@ -561,15 +565,15 @@ export default function HomePage() {
               <div>
                 <p className="text-white font-semibold mb-3">Platform</p>
                 <div className="space-y-2">
-                  <a href="#services" className="block hover:text-white transition-colors">Services</a>
+                  <a href="#ydelser" className="block hover:text-white transition-colors">Ydelser</a>
                   <a href="#how" className="block hover:text-white transition-colors">Sådan virker det</a>
-                  <Link href="/login" className="block hover:text-white transition-colors">Login</Link>
+                  <Link href="/login" className="block hover:text-white transition-colors">Log ind</Link>
                 </div>
               </div>
               <div>
                 <p className="text-white font-semibold mb-3">Brugere</p>
                 <div className="space-y-2">
-                  <a href="#studerende" className="block hover:text-white transition-colors">Studerende</a>
+                  <a href="#fordele" className="block hover:text-white transition-colors">Fordele</a>
                   <a href="#virksomheder" className="block hover:text-white transition-colors">Virksomheder</a>
                   <Link href="/dashboard" className="block hover:text-white transition-colors">Dashboard</Link>
                 </div>
