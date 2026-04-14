@@ -131,7 +131,7 @@ export default function AdminDashboard() {
               href="/dashboard/student?preview=admin"
               className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-900 transition-all"
             >
-              Se som studerende
+              Se som arbejdssøgende
             </a>
             <a
               href="/dashboard/company?preview=admin"
@@ -144,9 +144,9 @@ export default function AdminDashboard() {
       </div>
 
       {/* ── STUDERENDE ── */}
-      <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Studerende</p>
+      <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Arbejdssøgende</p>
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
-        <StatCard label="Studerende i alt" value={stats!.students} dark />
+        <StatCard label="Arbejdssøgende i alt" value={stats!.students} dark />
         <StatCard label="Nye (7 dage)" value={stats!.newSignups7d} />
         <StatCard label="Beskeder sendt" value={stats!.messagesSent} />
         <StatCard label="Dokumenter uploadet" value={stats!.docsUploaded} />
@@ -225,7 +225,7 @@ export default function AdminDashboard() {
             {pendingApps.map((a: any) => (
               <div key={a.id} className="px-5 py-3">
                 <p className="text-sm font-medium text-gray-800">
-                  {a.student_profiles?.full_name || "Studerende"}{" "}
+                  {a.student_profiles?.full_name || "Kandidat"}{" "}
                   <span className="text-gray-400">→</span>{" "}
                   {a.jobs?.title}
                 </p>
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
       {/* ── QUICK LINKS ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { href: "/dashboard/admin/users", label: "Brugere & timepriser", desc: "Sæt studerendes timepriser og administrér roller" },
+          { href: "/dashboard/admin/users", label: "Brugere & timepriser", desc: "Sæt kandidaters timepriser og administrér roller" },
           { href: "/dashboard/admin/jobs", label: "Alle jobs", desc: "Gennemse og administrér jobopslag" },
           { href: "/dashboard/admin/applications", label: "Alle ansøgninger", desc: "Godkend eller afvis ansøgninger" },
         ].map((l) => (

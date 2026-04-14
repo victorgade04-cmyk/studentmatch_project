@@ -230,7 +230,7 @@ function AppRow({ app, onUpdate }: { app: Application; onUpdate: () => void }) {
             </span>
           </div>
           <p className="font-semibold text-sm text-gray-800">
-            {app.student_profiles?.full_name || "Studerende"}
+            {app.student_profiles?.full_name || "Kandidat"}
           </p>
           {app.student_profiles?.hourly_rate && (
             <p className="text-xs text-gray-500 mt-0.5">{app.student_profiles.hourly_rate} kr/t</p>

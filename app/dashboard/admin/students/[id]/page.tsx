@@ -86,7 +86,7 @@ export default function AdminStudentPage() {
         <Link href="/dashboard/admin/users" className="text-sm text-gray-400 hover:text-gray-700">
           ← Brugere
         </Link>
-        <p className="text-sm text-gray-500 mt-6">Studerende ikke fundet.</p>
+        <p className="text-sm text-gray-500 mt-6">Kandidat ikke fundet.</p>
       </div>
     );
   }

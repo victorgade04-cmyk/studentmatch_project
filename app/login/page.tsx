@@ -25,7 +25,7 @@ export default function LoginPage() {
 
         <div>
           <p className="text-3xl font-black text-white leading-snug mb-4">
-            Forbinder virksomheder<br />med ambitiøse<br />studerende.
+            Find opgaver og jobs<br />der passer<br />til dig.
           </p>
           <p className="text-gray-400 text-sm leading-relaxed max-w-sm">
             Opret en profil, find det rette match og kom i gang med samarbejdet —
@@ -92,7 +92,7 @@ export default function LoginPage() {
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { value: "student", label: "Studerende" },
+                    { value: "student", label: "Arbejdssøgende" },
                     { value: "company", label: "Virksomhed" },
                   ].map(({ value, label }) => (
                     <label

@@ -24,12 +24,12 @@ const navLinks = {
     { href: "/dashboard/company/profile", label: "Virksomhedsprofil" },
     { href: "/dashboard/company/package", label: "Skift pakke" },
     { href: "/dashboard/company/jobs", label: "Mine jobs" },
-    { href: "/dashboard/company/students", label: "Find studerende" },
+    { href: "/dashboard/company/students", label: "Find kandidater" },
     { href: "/dashboard/messages", label: "Beskeder" },
   ],
 };
 
-const roleLabels = { admin: "Admin", student: "Studerende", company: "Virksomhed" };
+const roleLabels = { admin: "Admin", student: "Arbejdssøgende", company: "Virksomhed" };
 
 interface Props {
   userEmail: string;

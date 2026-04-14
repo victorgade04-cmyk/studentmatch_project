@@ -11,7 +11,7 @@ export default function AdminPreviewBar() {
 
   // Detect which role is being previewed from the current path
   const path = typeof window !== "undefined" ? window.location.pathname : "";
-  const role = path.includes("/student") ? "studerende" : "virksomhed";
+  const role = path.includes("/student") ? "arbejdssøgende" : "virksomhed";
 
   return (
     <div className="w-full bg-gray-900 text-white px-5 py-2.5 flex items-center justify-between text-sm z-40">

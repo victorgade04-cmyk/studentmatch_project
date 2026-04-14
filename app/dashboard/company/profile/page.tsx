@@ -33,7 +33,7 @@ export default function CompanyProfilePage() {
     <div className="p-8 max-w-2xl">
       <h1 className="text-2xl font-black text-gray-900 mb-1">Virksomhedsprofil</h1>
       <p className="text-gray-500 text-sm mb-8">
-        Studerende kan se dette, når de søger efter virksomheder.
+        Kandidater kan se dette, når de søger efter virksomheder.
       </p>
 
       <form action={action} className="bg-white rounded-xl border border-gray-100 p-6 space-y-5">
@@ -59,7 +59,7 @@ export default function CompanyProfilePage() {
           <textarea
             name="description"
             defaultValue={profile?.description || ""}
-            placeholder="Fortæl studerende om din virksomhed, kultur og hvad I laver…"
+            placeholder="Fortæl kandidater om din virksomhed, kultur og hvad I laver…"
             rows={5}
             className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
           />

@@ -48,9 +48,9 @@ export default async function BrowseStudentsPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-black text-gray-900 mb-1">Find studerende</h1>
+      <h1 className="text-2xl font-black text-gray-900 mb-1">Find kandidater</h1>
       <p className="text-gray-500 text-sm mb-8">
-        {students?.length ?? 0} studerende med profiler
+        {students?.length ?? 0} kandidater med profiler
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -144,7 +144,7 @@ export default async function BrowseStudentsPage() {
 
         {!students?.length && (
           <div className="col-span-full text-center py-16 text-gray-400">
-            <p className="text-sm">Ingen studerendes profiler endnu. Kig tilbage snart!</p>
+            <p className="text-sm">Ingen kandidatprofiler endnu. Kig tilbage snart!</p>
           </div>
         )}
       </div>

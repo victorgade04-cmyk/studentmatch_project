@@ -125,7 +125,7 @@ export default function MessagesPage() {
 
   const getOtherName = (conv: Conversation): string => {
     if (userRole === "student") return conv.company_profiles?.company_name || "Virksomhed";
-    return conv.student_profiles?.full_name || "Studerende";
+    return conv.student_profiles?.full_name || "Kandidat";
   };
 
   const selectedConv = conversations.find((c) => c.id === selectedId) ?? null;
@@ -146,7 +146,7 @@ export default function MessagesPage() {
               <p className="text-sm text-gray-400 leading-relaxed">
                 Ingen samtaler endnu.
                 {userRole === "company" && (
-                  <> Find studerende og klik på <strong>Send besked</strong>.</>
+                  <> Find kandidater og klik på <strong>Send besked</strong>.</>
                 )}
                 {userRole === "student" && (
                   <> Klik på <strong>Send besked</strong> på et jobopslag.</>
@@ -179,7 +179,7 @@ export default function MessagesPage() {
           <div className="px-6 py-4 border-b border-gray-100 bg-white flex-shrink-0">
             <p className="font-bold text-gray-900">{getOtherName(selectedConv)}</p>
             <p className="text-xs text-gray-400 mt-0.5">
-              {userRole === "student" ? "Virksomhed" : "Studerende"}
+              {userRole === "student" ? "Virksomhed" : "Arbejdssøgende"}
             </p>
           </div>
 
