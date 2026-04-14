@@ -23,7 +23,7 @@ export default function StudentProfilePage() {
       setUserId(user.id);
       supabase
         .from("student_profiles")
-        .select("full_name, bio, skills, education, availability, hourly_rate, package")
+        .select("full_name, bio, skills, education, current_job, availability, hourly_rate, package")
         .eq("id", user.id)
         .single()
         .then(({ data }) => {
@@ -126,12 +126,31 @@ export default function StudentProfilePage() {
 
         {userId && <DocumentsSection userId={userId} pkgId={pkgId} />}
 
-        <Field
-          label="Uddannelse"
-          name="education"
-          defaultValue={profile?.education || ""}
-          placeholder="HA Erhvervsøkonomi, CBS…"
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Baggrund</label>
+          <input
+            name="education"
+            defaultValue={profile?.education || ""}
+            placeholder="HA Erhvervsøkonomi, CBS…"
+            className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+          />
+          <p className="text-xs text-gray-400 mt-1.5">
+            Valgfrit — skriv din uddannelse, eller spring over hvis du ikke har en.
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Nuværende stilling</label>
+          <input
+            name="current_job"
+            defaultValue={profile?.current_job || ""}
+            placeholder="Fx. barista, butiksmedarbejder, freelancer…"
+            className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+          />
+          <p className="text-xs text-gray-400 mt-1.5">
+            Valgfrit — skriv dit nuværende job, eller spring over hvis du ikke har et.
+          </p>
+        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
             Tilgængelighed

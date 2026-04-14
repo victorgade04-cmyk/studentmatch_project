@@ -41,7 +41,8 @@ export async function updateStudentProfile(
     const updateData: Record<string, any> = {
       full_name: formData.get("full_name") as string,
       skills,
-      education: formData.get("education") as string,
+      education: (formData.get("education") as string) || null,
+      current_job: (formData.get("current_job") as string) || null,
       availability: formData.get("availability") as string,
       updated_at: new Date().toISOString(),
     };
