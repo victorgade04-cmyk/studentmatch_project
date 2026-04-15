@@ -116,64 +116,58 @@ export default function HomePage() {
 
       {/* ── HERO ── */}
       <section className="pt-32 pb-20 px-5">
-        <div className="max-w-5xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-gray-100 rounded-full px-4 py-1.5 text-xs font-semibold text-gray-600 mb-8 tracking-wide uppercase">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            Platform nu aktiv
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 bg-gray-100 rounded-full px-4 py-1.5 text-xs font-semibold text-gray-600 mb-8 tracking-wide uppercase">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              Platform nu aktiv
+            </div>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-gray-900 leading-[1.05] tracking-tight mb-6">
+              Har du ledig tid?<br />
+              <span className="text-gray-400">Vi kobler dig på</span><br />
+              virksomheder
+            </h1>
+            <p className="text-lg text-gray-500 max-w-xl mx-auto leading-relaxed">
+              StudentMatch er for alle med ledig tid — studerende, sabbatår, deltidsansatte og freelancere.
+              Vælg den model der passer dig bedst.
+            </p>
           </div>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-gray-900 leading-[1.05] tracking-tight mb-6">
-            Har du ledig tid?<br />
-            <span className="text-gray-400">Bliv matchet med</span><br />
-            virksomheder
-          </h1>
-
-          <p className="text-lg text-gray-500 max-w-xl mx-auto mb-12 leading-relaxed">
-            StudentMatch er for alle med ledig tid — studerende, sabbatår, deltidsansatte og freelancere.
-            Find opgaver og jobs der passer præcis til dig.
-          </p>
-
-          {/* Search widget */}
-          <div className="max-w-2xl mx-auto bg-white border border-gray-200 rounded-2xl shadow-xl shadow-gray-100 overflow-hidden">
-            {/* Tabs */}
-            <div className="flex border-b border-gray-100">
-              {(["studerende", "virksomheder"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setSearchTab(tab)}
-                  className={`flex-1 py-3.5 text-sm font-semibold capitalize transition-colors ${
-                    searchTab === tab
-                      ? "bg-gray-900 text-white"
-                      : "text-gray-500 hover:bg-gray-50"
-                  }`}
-                >
-                  {tab === "studerende" ? "Find kandidat" : "Find virksomhed"}
-                </button>
-              ))}
-            </div>
-
-            <div className="p-4 flex gap-3">
-              <input
-                type="text"
-                placeholder={
-                  searchTab === "studerende"
-                    ? "Kompetence, fag eller navn…"
-                    : "Branche, virksomhed eller opgave…"
-                }
-                className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder-gray-400"
-              />
+          {/* Two core use-case cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Card 1 — Timebasis */}
+            <div className="relative bg-gray-900 rounded-2xl p-8 overflow-hidden">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -translate-y-20 translate-x-20" />
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-5">Timeopgaver</p>
+              <h2 className="text-3xl font-black text-white mb-4 leading-tight">
+                Find opgaver<br />på timebasis
+              </h2>
+              <p className="text-gray-400 leading-relaxed mb-8">
+                Virksomheder slår opgaver op med et estimeret timetal og en timepris. Du byder ind, chatter med virksomheden og udfører opgaven på dine præmisser.
+              </p>
               <Link
                 href="/login"
-                className="px-5 py-3 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-colors whitespace-nowrap"
+                className="inline-flex items-center gap-2 bg-white text-gray-900 text-sm font-bold px-6 py-3 rounded-xl hover:bg-gray-100 transition-colors"
               >
-                Søg →
+                Se opgaver →
               </Link>
             </div>
 
-            <div className="px-4 pb-4">
-              <Link href="/login"
-                className="block text-center py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                Opret gratis konto
+            {/* Card 2 — Jobportal */}
+            <div className="relative bg-white rounded-2xl p-8 border-2 border-gray-900 overflow-hidden">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-gray-50 rounded-full -translate-y-20 translate-x-20" />
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-5">Jobportal</p>
+              <h2 className="text-3xl font-black text-gray-900 mb-4 leading-tight">
+                Søg ledige<br />stillinger
+              </h2>
+              <p className="text-gray-500 leading-relaxed mb-8">
+                Browse virksomheders jobopslag — fra deltidsjobs til fuldtidsstillinger. Ansøg direkte og hør fra virksomheden når fristen udløber.
+              </p>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm font-bold px-6 py-3 rounded-xl hover:bg-gray-700 transition-colors"
+              >
+                Søg jobs →
               </Link>
             </div>
           </div>
@@ -197,38 +191,35 @@ export default function HomePage() {
       </section>
 
       {/* ── SERVICES ── */}
-      <section id="ydelser" className="py-24 px-5">
+      <section id="ydelser" className="py-24 px-5 bg-gray-50">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Ydelser</p>
-            <h2 className="text-4xl font-black text-gray-900">Hvad kan vi hjælpe med?</h2>
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">For virksomheder</p>
+            <h2 className="text-4xl font-black text-gray-900">Find den hjælp du har brug for</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Card 1 */}
-            <div className="group relative bg-gray-900 rounded-2xl p-8 overflow-hidden hover:shadow-2xl transition-shadow">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-16 translate-x-16" />
-              <h3 className="text-2xl font-black text-white mb-3">Find den rette hjælp</h3>
-              <p className="text-gray-400 leading-relaxed mb-6">
-                Rekruttér motiverede folk til opgaver, deltidsarbejde eller timebasis — uanset om de er studerende, på sabbatår eller søger ekstra arbejde ved siden af.
-              </p>
-              <Link href="/login"
-                className="inline-flex items-center gap-2 bg-white text-gray-900 text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-colors">
-                Find kandidater <span>→</span>
-              </Link>
-            </div>
-
-            {/* Card 2 */}
-            <div className="group relative bg-white rounded-2xl p-8 border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-gray-50 rounded-full -translate-y-16 translate-x-16" />
-              <h3 className="text-2xl font-black text-gray-900 mb-3">Få hjælp på timebasis</h3>
+            <div className="bg-white rounded-2xl p-8 border border-gray-100 hover:border-gray-900 hover:shadow-sm transition-all">
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Timeopgaver</p>
+              <h3 className="text-2xl font-black text-gray-900 mb-3">Slå en opgave op</h3>
               <p className="text-gray-500 leading-relaxed mb-6">
-                Har du en specifik opgave? Post din opgave og modtag tilbud fra
-                kandidater inden for 24 timer. Betal kun for udført arbejde.
+                Post en konkret opgave med timetal og timepris. Modtag bud fra motiverede kandidater og betal kun for udført arbejde.
               </p>
               <Link href="/login"
                 className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-gray-700 transition-colors">
-                Post opgave <span>→</span>
+                Post opgave →
+              </Link>
+            </div>
+
+            <div className="bg-white rounded-2xl p-8 border border-gray-100 hover:border-gray-900 hover:shadow-sm transition-all">
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Jobportal</p>
+              <h3 className="text-2xl font-black text-gray-900 mb-3">Opret et jobopslag</h3>
+              <p className="text-gray-500 leading-relaxed mb-6">
+                Slå en stilling op — deltid, fuldtid eller projektbaseret. Modtag ansøgninger og find den rette kandidat til din virksomhed.
+              </p>
+              <Link href="/login"
+                className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-gray-700 transition-colors">
+                Opret jobopslag →
               </Link>
             </div>
           </div>
@@ -443,33 +434,64 @@ export default function HomePage() {
 
       {/* ── HOW IT WORKS ── */}
       <section id="how" className="py-24 px-5">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Proces</p>
-            <h2 className="text-4xl font-black text-gray-900">Sådan virker det</h2>
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Sådan virker det</p>
+            <h2 className="text-4xl font-black text-gray-900">To veje til arbejde</h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {[
-              { step: "01", title: "Opret din profil", body: "Beskriv dine kompetencer, tilgængelighed og timepris. Bliv fundet af virksomheder der søger præcis dét, du tilbyder." },
-              { step: "02", title: "Find opgaver og jobs", body: "Søg blandt virksomheders opslag — alt fra kortsigtede opgaver på få timer til faste deltidsstillinger." },
-              { step: "03", title: "Arbejd på dine præmisser", body: "Vælg om du vil arbejde på timebasis, projektbasis eller som fast deltidsansat." },
-            ].map((s) => (
-              <div key={s.step} className="relative">
-                <div className="bg-gray-50 rounded-2xl p-6 h-full border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all">
-                  <div className="text-xs font-black text-gray-300 tracking-widest mb-4">{s.step}</div>
-                  <h4 className="font-bold text-gray-900 mb-2">{s.title}</h4>
-                  <p className="text-sm text-gray-500 leading-relaxed">{s.body}</p>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Track 1 */}
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-5">Timeopgaver</p>
+              <div className="space-y-4">
+                {[
+                  { step: "01", title: "Opret din profil", body: "Beskriv dine kompetencer, tilgængelighed og sæt din timepris." },
+                  { step: "02", title: "Find en opgave", body: "Søg bland virksomheders timeopgaver og byd ind på dem der passer dig." },
+                  { step: "03", title: "Chat og udfør", body: "Chat med virksomheden, aftal detaljerne og udfør opgaven på dine præmisser." },
+                ].map((s) => (
+                  <div key={s.step} className="flex gap-4 bg-gray-50 rounded-xl p-5 border border-gray-100">
+                    <div className="text-xs font-black text-gray-300 tracking-widest mt-0.5 w-6 flex-shrink-0">{s.step}</div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-1">{s.title}</h4>
+                      <p className="text-sm text-gray-500 leading-relaxed">{s.body}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+              <div className="mt-5">
+                <Link href="/login"
+                  className="inline-flex items-center gap-2 bg-gray-900 text-white rounded-xl px-6 py-3 text-sm font-bold hover:bg-gray-700 transition-colors">
+                  Se opgaver →
+                </Link>
+              </div>
+            </div>
 
-          <div className="text-center mt-10">
-            <Link href="/login"
-              className="inline-flex items-center gap-2 bg-gray-900 text-white rounded-xl px-7 py-3.5 text-sm font-bold hover:bg-gray-700 transition-colors">
-              Opret konto gratis <span>→</span>
-            </Link>
+            {/* Track 2 */}
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-5">Jobportal</p>
+              <div className="space-y-4">
+                {[
+                  { step: "01", title: "Opret din profil", body: "Upload dit CV og beskriv hvad du søger — deltid, fuldtid eller projektbaseret." },
+                  { step: "02", title: "Søg ledige stillinger", body: "Browse virksomheders jobopslag og ansøg direkte med et ansøgningsbrev." },
+                  { step: "03", title: "Hør fra virksomheden", body: "Virksomheden gennemgår ansøgningerne og giver besked når fristen udløber." },
+                ].map((s) => (
+                  <div key={s.step} className="flex gap-4 bg-gray-50 rounded-xl p-5 border border-gray-100">
+                    <div className="text-xs font-black text-gray-300 tracking-widest mt-0.5 w-6 flex-shrink-0">{s.step}</div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-1">{s.title}</h4>
+                      <p className="text-sm text-gray-500 leading-relaxed">{s.body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-5">
+                <Link href="/login"
+                  className="inline-flex items-center gap-2 border border-gray-900 text-gray-900 rounded-xl px-6 py-3 text-sm font-bold hover:bg-gray-50 transition-colors">
+                  Søg jobs →
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
