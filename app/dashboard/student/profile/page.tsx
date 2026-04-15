@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { PACKAGES, PACKAGE_BADGE, PackageId } from "@/lib/packages";
 import Link from "next/link";
 import DocumentsSection from "./DocumentsSection";
+import SkillsInput from "./SkillsInput";
 
 const initial: { error?: string; success?: string } = {};
 
@@ -39,7 +40,6 @@ export default function StudentProfilePage() {
   const pkg = PACKAGES[pkgId];
   const badgeClass = PACKAGE_BADGE[pkgId];
   const currentSkills: string[] = profile?.skills || [];
-  const skillsStr = currentSkills.join(", ");
 
   return (
     <div className="p-8 max-w-2xl">
@@ -96,33 +96,11 @@ export default function StudentProfilePage() {
           </div>
         )}
 
-        {/* Skills with package limit */}
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <label className="block text-sm font-medium text-gray-700">
-              Kompetencer (kommasepareret)
-            </label>
-            {pkg.maxSkills !== null && (
-              <span className={`text-xs font-medium ${currentSkills.length >= pkg.maxSkills ? "text-red-500" : "text-gray-400"}`}>
-                {currentSkills.length}/{pkg.maxSkills}
-              </span>
-            )}
-          </div>
-          <input
-            name="skills"
-            defaultValue={skillsStr}
-            placeholder="Finance, Excel, Communication"
-            className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-          />
-          {pkg.maxSkills !== null && (
-            <p className="text-xs text-gray-400 mt-1.5">
-              Din pakke tillader maks. {pkg.maxSkills} kompetencer.{" "}
-              <Link href="/dashboard/student/package" className="underline hover:text-gray-600">
-                Opgrader for ubegrænset adgang.
-              </Link>
-            </p>
-          )}
-        </div>
+        {/* Skills tag input */}
+        <SkillsInput
+          initialSkills={currentSkills}
+          maxSkills={pkg.maxSkills}
+        />
 
         {userId && <DocumentsSection userId={userId} pkgId={pkgId} />}
 
