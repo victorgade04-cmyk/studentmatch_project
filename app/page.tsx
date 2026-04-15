@@ -49,7 +49,7 @@ export default function HomePage() {
           <div className="hidden lg:flex items-center gap-6 text-sm font-medium text-gray-500">
             <a href="#ydelser" className="hover:text-gray-900 transition-colors">Ydelser</a>
             <a href="#fordele" className="hover:text-gray-900 transition-colors">Fordele</a>
-            <a href="#virksomheder" className="hover:text-gray-900 transition-colors">Virksomheder</a>
+            <Link href="/jobs" className="hover:text-gray-900 transition-colors">Jobportal</Link>
             <a href="#how" className="hover:text-gray-900 transition-colors">Sådan virker det</a>
           </div>
 
@@ -91,7 +91,7 @@ export default function HomePage() {
             {[
               { label: "Ydelser", href: "#ydelser" },
               { label: "Fordele", href: "#fordele" },
-              { label: "Virksomheder", href: "#virksomheder" },
+              { label: "Jobportal", href: "/jobs" },
               { label: "Sådan virker det", href: "#how" },
             ].map((item) => (
               <a key={item.href} href={item.href}
