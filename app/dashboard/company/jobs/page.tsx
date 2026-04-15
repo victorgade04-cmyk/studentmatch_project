@@ -19,6 +19,9 @@ type Job = {
   budget: number | null;
   status: string;
   requirements: string[];
+  deadline: string | null;
+  job_type: string | null;
+  location: string | null;
   created_at: string;
   applications: Application[];
 };
@@ -89,38 +92,81 @@ export default function CompanyJobsPage() {
           <h2 className="font-bold text-gray-900 mb-4">Opret nyt jobopslag</h2>
           <form action={createAction} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[
-                { label: "Jobtitel", name: "title", placeholder: "Marketing-assistent" },
-                { label: "Budget (kr)", name: "budget", placeholder: "5000" },
-              ].map((f) => (
-                <div key={f.name}>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">{f.label}</label>
-                  <input
-                    name={f.name}
-                    placeholder={f.placeholder}
-                    type={f.name === "budget" ? "number" : "text"}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                  />
-                </div>
-              ))}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Jobtitel</label>
+                <input
+                  name="title"
+                  placeholder="Marketing-assistent"
+                  required
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Budget (kr)</label>
+                <input
+                  name="budget"
+                  placeholder="5000"
+                  type="number"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+              </div>
             </div>
+
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Beskrivelse</label>
               <textarea
                 name="description"
-                placeholder="Beskriv rollen, ansvarsområder og forventninger…"
-                rows={3}
+                placeholder="Beskriv jobbet, arbejdsopgaver og hvad I forventer af kandidaten…"
+                rows={5}
+                required
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
               />
             </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Krav (kommasepareret)</label>
-              <input
-                name="requirements"
-                placeholder="Excel, kommunikation, 2+ års erfaring"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-              />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Jobtype</label>
+                <select
+                  name="job_type"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                >
+                  <option value="">Vælg jobtype</option>
+                  <option value="Timebasis">Timebasis</option>
+                  <option value="Deltid">Deltid</option>
+                  <option value="Fuldtid">Fuldtid</option>
+                  <option value="Projektbaseret">Projektbaseret</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Lokation</label>
+                <input
+                  name="location"
+                  placeholder="Fx København, Aarhus eller Remote"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+              </div>
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Ansøgningsfrist</label>
+                <input
+                  name="deadline"
+                  type="date"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+                <p className="text-xs text-gray-400 mt-1">Valgfrit — ansøgere kan ikke søge efter denne dato.</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Krav (kommasepareret)</label>
+                <input
+                  name="requirements"
+                  placeholder="Excel, kommunikation, 2+ års erfaring"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+              </div>
+            </div>
+
             {createState?.error && (
               <p className="text-sm text-red-600">{createState.error}</p>
             )}

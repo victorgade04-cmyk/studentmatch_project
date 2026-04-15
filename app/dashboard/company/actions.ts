@@ -47,6 +47,9 @@ export async function createJob(
     const title = (formData.get("title") as string).trim();
     if (!title) return { error: "Titel er påkrævet." };
 
+    const description = (formData.get("description") as string).trim();
+    if (!description) return { error: "Beskrivelse er påkrævet." };
+
     const requirements = (formData.get("requirements") as string)
       .split(",")
       .map((r) => r.trim())
@@ -55,12 +58,21 @@ export async function createJob(
     const budgetRaw = formData.get("budget") as string;
     const budget = budgetRaw ? parseFloat(budgetRaw) : null;
 
+    const deadlineRaw = formData.get("deadline") as string;
+    const deadline = deadlineRaw || null;
+
+    const jobType = (formData.get("job_type") as string) || null;
+    const location = (formData.get("location") as string).trim() || null;
+
     const { error } = await supabase.from("jobs").insert({
       company_id: user.id,
       title,
-      description: formData.get("description") as string,
+      description,
       requirements,
       budget,
+      deadline,
+      job_type: jobType,
+      location,
     });
 
     if (error) return { error: error.message };
