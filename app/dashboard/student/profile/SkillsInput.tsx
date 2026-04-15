@@ -4,7 +4,6 @@ import { useState, useRef, KeyboardEvent } from "react";
 import Link from "next/link";
 
 const MAX_CHARS = 30;
-const MAX_WORDS = 3;
 
 interface Props {
   initialSkills: string[];
@@ -13,7 +12,6 @@ interface Props {
 
 function validateSkill(value: string): string | null {
   if (value.length > MAX_CHARS) return `En kompetence må maks. være ${MAX_CHARS} tegn.`;
-  if (value.split(/\s+/).filter(Boolean).length > MAX_WORDS) return `En kompetence må maks. bestå af ${MAX_WORDS} ord.`;
   return null;
 }
 
@@ -26,7 +24,7 @@ export default function SkillsInput({ initialSkills, maxSkills }: Props) {
   const atLimit = maxSkills !== null && skills.length >= maxSkills;
 
   function addSkill(raw: string) {
-    const trimmed = raw.trim().replace(/,+$/, "").trim();
+    const trimmed = raw.replace(/ /g, "").replace(/,+$/, "").trim();
     if (!trimmed) return;
     if (atLimit) return;
 
@@ -66,17 +64,25 @@ export default function SkillsInput({ initialSkills, maxSkills }: Props) {
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const val = e.target.value;
+
+    // Reject spaces — strip them and show an error
+    if (val.includes(" ")) {
+      setInputValue(val.replace(/ /g, ""));
+      setError("Kompetencer må ikke indeholde mellemrum — brug fx 'Projektledelse' eller 'MicrosoftExcel'.");
+      return;
+    }
+
     // Hard-cap typing at MAX_CHARS
     if (val.length > MAX_CHARS) {
       setError(`En kompetence må maks. være ${MAX_CHARS} tegn.`);
       return;
     }
+
     if (val.endsWith(",")) {
       addSkill(val.slice(0, -1));
     } else {
       setInputValue(val);
-      // Clear error once user edits back to valid length
-      if (error && val.length <= MAX_CHARS) setError(null);
+      if (error) setError(null);
     }
   }
 
