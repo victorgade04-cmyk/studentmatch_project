@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import Link from "next/link";
 import { createJob, toggleJobStatusDirect, updateApplicationStatus } from "../actions";
 import { createClient } from "@/lib/supabase/client";
 
@@ -216,11 +217,17 @@ export default function CompanyJobsPage() {
                       {job.status === "open" ? "Luk" : "Genåbn"}
                     </button>
                   </form>
+                  <Link
+                    href={`/dashboard/company/jobs/${job.id}/applicants`}
+                    className="text-xs px-3 py-1 rounded-lg bg-gray-900 text-white hover:bg-gray-700 transition-colors font-semibold"
+                  >
+                    Se ansøgere
+                  </Link>
                   <button
                     onClick={() => setExpanded(isExpanded ? null : job.id)}
                     className="text-xs px-3 py-1 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
                   >
-                    {isExpanded ? "Skjul" : "Ansøgere"}
+                    {isExpanded ? "Skjul" : "Hurtigoversigt"}
                   </button>
                 </div>
               </div>
