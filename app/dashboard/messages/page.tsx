@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { getOrCreateConversation, sendMessage } from "./actions";
+import { getOrCreateConversation, getOrCreateConversationAdmin, sendMessage } from "./actions";
 
 type Conversation = {
   id: string;
-  student_id: string;
-  company_id: string;
+  student_id: string | null;
+  company_id: string | null;
+  admin_participant_id: string | null;
   updated_at: string;
   student_profiles: { full_name: string | null } | null;
   company_profiles: { company_name: string | null } | null;
@@ -24,7 +25,9 @@ type Message = {
 
 export default function MessagesPage() {
   const searchParams = useSearchParams();
+  // ?with= is used by student/company flows; ?user= is used by admin
   const withUserId = searchParams.get("with");
+  const adminTargetUserId = searchParams.get("user");
 
   const [userId, setUserId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -38,39 +41,49 @@ export default function MessagesPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Load user + conversations, handle ?with= param
+  // Load user + conversations, handle ?with= and ?user= params
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return;
       setUserId(user.id);
-      setUserRole(user.user_metadata?.role ?? null);
+      const role = user.user_metadata?.role ?? null;
+      setUserRole(role);
 
       const convs = await loadConversations(user.id, supabase);
 
-      if (withUserId) {
-        // If ?with= param present, get or create that conversation then select it
+      if (adminTargetUserId && role === "admin") {
+        // Admin flow: get or create conversation with any user
+        const result = await getOrCreateConversationAdmin(adminTargetUserId);
+        if ("conversationId" in result) {
+          setSelectedId(result.conversationId);
+          await loadConversations(user.id, supabase);
+        }
+      } else if (withUserId) {
+        // Student/company flow: get or create conversation between roles
         const result = await getOrCreateConversation(withUserId);
         if ("conversationId" in result) {
           setSelectedId(result.conversationId);
-          // Reload conversations to include the potentially new one
           await loadConversations(user.id, supabase);
         }
       } else if (convs.length > 0) {
         setSelectedId(convs[0].id);
       }
     });
-  }, [withUserId]);
+  }, [withUserId, adminTargetUserId]);
 
-  async function loadConversations(uid: string, supabase: ReturnType<typeof createClient>): Promise<Conversation[]> {
+  async function loadConversations(
+    uid: string,
+    supabase: ReturnType<typeof createClient>
+  ): Promise<Conversation[]> {
     const { data } = await supabase
       .from("conversations")
       .select(`
-        id, student_id, company_id, updated_at,
+        id, student_id, company_id, admin_participant_id, updated_at,
         student_profiles(full_name),
         company_profiles(company_name)
       `)
-      .or(`student_id.eq.${uid},company_id.eq.${uid}`)
+      .or(`student_id.eq.${uid},company_id.eq.${uid},admin_participant_id.eq.${uid}`)
       .order("updated_at", { ascending: false });
 
     const convs = (data as unknown as Conversation[]) || [];
@@ -95,12 +108,19 @@ export default function MessagesPage() {
       .channel(`msgs:${selectedId}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${selectedId}` },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${selectedId}`,
+        },
         (payload) => setMessages((prev) => [...prev, payload.new as Message])
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [selectedId]);
 
   // Auto-scroll to latest message
@@ -117,16 +137,32 @@ export default function MessagesPage() {
     const result = await sendMessage(selectedId, text);
     if (result.error) {
       setSendError(result.error);
-      setDraft(text); // restore draft on error
+      setDraft(text);
     }
     setSending(false);
     inputRef.current?.focus();
   };
 
-  const getOtherName = (conv: Conversation): string => {
+  function getOtherName(conv: Conversation): string {
+    if (userRole === "admin") {
+      // Admin conversation: the other party is whichever side is not admin
+      return (
+        conv.student_profiles?.full_name ||
+        conv.company_profiles?.company_name ||
+        "Bruger"
+      );
+    }
     if (userRole === "student") return conv.company_profiles?.company_name || "Virksomhed";
     return conv.student_profiles?.full_name || "Kandidat";
-  };
+  }
+
+  function getOtherRole(conv: Conversation): string {
+    if (userRole === "admin") {
+      return conv.student_id ? "Arbejdssøgende" : "Virksomhed";
+    }
+    if (userRole === "student") return "Virksomhed";
+    return "Arbejdssøgende";
+  }
 
   const selectedConv = conversations.find((c) => c.id === selectedId) ?? null;
 
@@ -146,10 +182,16 @@ export default function MessagesPage() {
               <p className="text-sm text-gray-400 leading-relaxed">
                 Ingen samtaler endnu.
                 {userRole === "company" && (
-                  <> Find kandidater og klik på <strong>Send besked</strong>.</>
+                  <>
+                    {" "}
+                    Find kandidater og klik på <strong>Send besked</strong>.
+                  </>
                 )}
                 {userRole === "student" && (
-                  <> Klik på <strong>Send besked</strong> på et jobopslag.</>
+                  <>
+                    {" "}
+                    Klik på <strong>Send besked</strong> på et jobopslag.
+                  </>
                 )}
               </p>
             </div>
@@ -159,12 +201,19 @@ export default function MessagesPage() {
                 key={conv.id}
                 onClick={() => setSelectedId(conv.id)}
                 className={`w-full text-left px-5 py-3.5 border-b border-gray-50 hover:bg-gray-50 transition-colors ${
-                  selectedId === conv.id ? "bg-gray-50 border-l-2 border-l-gray-900" : ""
+                  selectedId === conv.id
+                    ? "bg-gray-50 border-l-2 border-l-gray-900"
+                    : ""
                 }`}
               >
-                <p className="text-sm font-semibold text-gray-900 truncate">{getOtherName(conv)}</p>
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {getOtherName(conv)}
+                </p>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  {new Date(conv.updated_at).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
+                  {new Date(conv.updated_at).toLocaleDateString("da-DK", {
+                    day: "numeric",
+                    month: "short",
+                  })}
                 </p>
               </button>
             ))
@@ -178,9 +227,7 @@ export default function MessagesPage() {
           {/* Thread header */}
           <div className="px-6 py-4 border-b border-gray-100 bg-white flex-shrink-0">
             <p className="font-bold text-gray-900">{getOtherName(selectedConv)}</p>
-            <p className="text-xs text-gray-400 mt-0.5">
-              {userRole === "student" ? "Virksomhed" : "Arbejdssøgende"}
-            </p>
+            <p className="text-xs text-gray-400 mt-0.5">{getOtherRole(selectedConv)}</p>
           </div>
 
           {/* Messages */}
@@ -193,7 +240,10 @@ export default function MessagesPage() {
             {messages.map((msg) => {
               const isMe = msg.sender_id === userId;
               return (
-                <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                <div
+                  key={msg.id}
+                  className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+                >
                   <div
                     className={`max-w-xs lg:max-w-md px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                       isMe
@@ -202,7 +252,7 @@ export default function MessagesPage() {
                     }`}
                   >
                     <p>{msg.content}</p>
-                    <p className={`text-xs mt-1.5 ${isMe ? "text-gray-400" : "text-gray-400"}`}>
+                    <p className="text-xs mt-1.5 text-gray-400">
                       {new Date(msg.created_at).toLocaleTimeString("da-DK", {
                         hour: "2-digit",
                         minute: "2-digit",
@@ -217,9 +267,7 @@ export default function MessagesPage() {
 
           {/* Input */}
           <div className="p-4 border-t border-gray-100 bg-white flex-shrink-0">
-            {sendError && (
-              <p className="text-xs text-red-600 mb-2">{sendError}</p>
-            )}
+            {sendError && <p className="text-xs text-red-600 mb-2">{sendError}</p>}
             <div className="flex gap-3">
               <input
                 ref={inputRef}

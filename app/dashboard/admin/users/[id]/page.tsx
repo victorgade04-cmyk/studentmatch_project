@@ -172,7 +172,7 @@ export default function AdminUserProfilePage() {
           </p>
         </div>
         <Link
-          href={`/dashboard/messages?with=${user.id}`}
+          href={`/dashboard/messages?user=${user.id}`}
           className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
         >
           Send besked
