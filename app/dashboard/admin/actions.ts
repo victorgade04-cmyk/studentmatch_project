@@ -164,3 +164,93 @@ export async function removeJob(formData: FormData): Promise<void> {
     revalidatePath("/dashboard/admin/jobs");
   } catch {}
 }
+
+export async function updateStudentProfileAdmin(
+  _prev: { error?: string; success?: string },
+  formData: FormData
+): Promise<{ error?: string; success?: string }> {
+  try {
+    await assertAdmin();
+    const admin = createAdminClient();
+    const userId = formData.get("userId") as string;
+
+    const skills = (formData.get("skills") as string)
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const hourlyRateRaw = formData.get("hourly_rate") as string;
+    const hourlyRate = hourlyRateRaw ? parseFloat(hourlyRateRaw) : null;
+
+    const { error } = await admin
+      .from("student_profiles")
+      .update({
+        full_name: formData.get("full_name") as string,
+        bio: (formData.get("bio") as string) || null,
+        skills,
+        education: (formData.get("education") as string) || null,
+        current_job: (formData.get("current_job") as string) || null,
+        availability: (formData.get("availability") as string) || null,
+        hourly_rate: hourlyRate,
+        package: formData.get("package") as string,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", userId);
+
+    if (error) return { error: error.message };
+    revalidatePath(`/dashboard/admin/users/${userId}`);
+    revalidatePath("/dashboard/admin/users");
+    return { success: "Profil opdateret!" };
+  } catch (e: any) {
+    return { error: e.message };
+  }
+}
+
+export async function updateCompanyProfileAdmin(
+  _prev: { error?: string; success?: string },
+  formData: FormData
+): Promise<{ error?: string; success?: string }> {
+  try {
+    await assertAdmin();
+    const admin = createAdminClient();
+    const userId = formData.get("userId") as string;
+
+    const { error } = await admin
+      .from("company_profiles")
+      .update({
+        company_name: formData.get("company_name") as string,
+        description: (formData.get("description") as string) || null,
+        contact_email: (formData.get("contact_email") as string) || null,
+        website: (formData.get("website") as string) || null,
+        package: formData.get("package") as string,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", userId);
+
+    if (error) return { error: error.message };
+    revalidatePath(`/dashboard/admin/users/${userId}`);
+    revalidatePath("/dashboard/admin/users");
+    return { success: "Virksomhedsprofil opdateret!" };
+  } catch (e: any) {
+    return { error: e.message };
+  }
+}
+
+export async function deleteUserAdmin(
+  _prev: { error?: string; success?: string },
+  formData: FormData
+): Promise<{ error?: string; success?: string }> {
+  try {
+    await assertAdmin();
+    const admin = createAdminClient();
+    const userId = formData.get("userId") as string;
+
+    const { error } = await admin.auth.admin.deleteUser(userId);
+    if (error) return { error: error.message };
+
+    revalidatePath("/dashboard/admin/users");
+    return { success: "Bruger slettet." };
+  } catch (e: any) {
+    return { error: e.message };
+  }
+}

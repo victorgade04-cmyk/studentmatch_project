@@ -38,9 +38,9 @@ export default function AdminUsersPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">User Management</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-1">Brugerstyring</h1>
       <p className="text-gray-500 text-sm mb-8">
-        Manage roles and set student hourly rates
+        Administrer roller og indstil timepris for arbejdssøgende
       </p>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
@@ -48,11 +48,11 @@ export default function AdminUsersPage() {
           <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
             <tr>
               <th className="px-6 py-3 text-left">Email</th>
-              <th className="px-6 py-3 text-left">Role</th>
-              <th className="px-6 py-3 text-left">Name</th>
-              <th className="px-6 py-3 text-left">Hourly Rate (kr/hr)</th>
+              <th className="px-6 py-3 text-left">Rolle</th>
+              <th className="px-6 py-3 text-left">Navn</th>
+              <th className="px-6 py-3 text-left">Timepris (kr/t)</th>
               <th className="px-6 py-3 text-left">Pakke</th>
-              <th className="px-6 py-3 text-left">Joined</th>
+              <th className="px-6 py-3 text-left">Oprettet</th>
               <th className="px-6 py-3"></th>
             </tr>
           </thead>
@@ -71,7 +71,7 @@ export default function AdminUsersPage() {
           </tbody>
         </table>
         {!users.length && (
-          <p className="px-6 py-8 text-sm text-gray-400 text-center">No users found.</p>
+          <p className="px-6 py-8 text-sm text-gray-400 text-center">Ingen brugere fundet.</p>
         )}
       </div>
     </div>
@@ -126,7 +126,7 @@ function UserRow({ user, onUpdated }: { user: User; onUpdated: () => void }) {
             disabled={savingRole}
             className="text-xs text-gray-700 hover:underline disabled:opacity-50"
           >
-            {savingRole ? "…" : "Save"}
+            {savingRole ? "…" : "Gem"}
           </button>
         </form>
       </td>
@@ -151,7 +151,7 @@ function UserRow({ user, onUpdated }: { user: User; onUpdated: () => void }) {
               disabled={savingRate}
               className="text-xs text-gray-700 hover:underline disabled:opacity-50"
             >
-              {savingRate ? "…" : "Set"}
+              {savingRate ? "…" : "Gem"}
             </button>
             {rateState?.success && <span className="text-xs text-green-600">✓</span>}
             {rateState?.error && <span className="text-xs text-red-500">{rateState.error}</span>}
@@ -179,7 +179,7 @@ function UserRow({ user, onUpdated }: { user: User; onUpdated: () => void }) {
               disabled={savingPkg}
               className="text-xs text-gray-700 hover:underline disabled:opacity-50"
             >
-              {savingPkg ? "…" : "Set"}
+              {savingPkg ? "…" : "Gem"}
             </button>
             {pkgState?.success === "ok" && (
               <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${PACKAGE_BADGE[currentPkg]}`}>
@@ -196,14 +196,12 @@ function UserRow({ user, onUpdated }: { user: User; onUpdated: () => void }) {
         {new Date(user.created_at).toLocaleDateString()}
       </td>
       <td className="px-6 py-3">
-        {user.role === "student" && (
-          <Link
-            href={`/dashboard/admin/students/${user.id}`}
-            className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors"
-          >
-            Profil →
-          </Link>
-        )}
+        <Link
+          href={`/dashboard/admin/users/${user.id}`}
+          className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors"
+        >
+          Se profil →
+        </Link>
       </td>
     </tr>
   );
@@ -212,7 +210,7 @@ function UserRow({ user, onUpdated }: { user: User; onUpdated: () => void }) {
 function Loading() {
   return (
     <div className="p-8 flex items-center justify-center h-64">
-      <div className="text-gray-400 text-sm">Loading…</div>
+      <div className="text-gray-400 text-sm">Indlæser…</div>
     </div>
   );
 }
