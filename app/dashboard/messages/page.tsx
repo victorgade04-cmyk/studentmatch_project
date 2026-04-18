@@ -44,21 +44,32 @@ export default function MessagesPage() {
 
   // Load user + conversations, handle ?with= and ?user= params
   useEffect(() => {
+    console.log("[messages] effect fired — adminTargetUserId:", adminTargetUserId, "withUserId:", withUserId);
     const supabase = createClient();
     supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) return;
+      if (!user) {
+        console.log("[messages] no authenticated user");
+        return;
+      }
       setUserId(user.id);
-      const role = user.user_metadata?.role ?? null;
+      // Supabase stores admin-assigned roles in app_metadata; user-set metadata
+      // goes to user_metadata. Check both so either setup works.
+      const role =
+        user.user_metadata?.role ?? user.app_metadata?.role ?? null;
+      console.log("[messages] user id:", user.id, "role:", role, "user_metadata:", user.user_metadata, "app_metadata:", user.app_metadata);
       setUserRole(role);
 
       const convs = await loadConversations(user.id, supabase);
+      console.log("[messages] initial conversations loaded:", convs.length);
 
       if (adminTargetUserId && role === "admin") {
         // Admin flow: get or create conversation with any user
+        console.log("[messages] calling getOrCreateConversationAdmin for", adminTargetUserId);
         const result = await getOrCreateConversationAdmin(adminTargetUserId);
+        console.log("[messages] getOrCreateConversationAdmin result:", result);
         if ("conversationId" in result) {
           // Load conversations first so the list is up-to-date before we set
-          // selectedId — both state updates then land in the same render batch.
+          // selectedId — both state updates land in the same render batch.
           await loadConversations(user.id, supabase);
           setSelectedId(result.conversationId);
         } else {
@@ -66,7 +77,9 @@ export default function MessagesPage() {
         }
       } else if (withUserId) {
         // Student/company flow: get or create conversation between roles
+        console.log("[messages] calling getOrCreateConversation for", withUserId);
         const result = await getOrCreateConversation(withUserId);
+        console.log("[messages] getOrCreateConversation result:", result);
         if ("conversationId" in result) {
           await loadConversations(user.id, supabase);
           setSelectedId(result.conversationId);
@@ -75,6 +88,8 @@ export default function MessagesPage() {
         }
       } else if (convs.length > 0) {
         setSelectedId(convs[0].id);
+      } else {
+        console.log("[messages] no query param and no existing conversations — idle");
       }
     });
   }, [withUserId, adminTargetUserId]);
