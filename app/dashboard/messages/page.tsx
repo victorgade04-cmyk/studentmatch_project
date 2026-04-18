@@ -103,7 +103,7 @@ export default function MessagesPage() {
       .select(`
         id, student_id, company_id, admin_participant_id, updated_at,
         
-        company_profiles(company_name)
+
       `)
       .or(`student_id.eq.${uid},company_id.eq.${uid},admin_participant_id.eq.${uid}`)
       .order("updated_at", { ascending: false });
