@@ -101,7 +101,7 @@ export default function MessagesPage() {
     const { data, error } = await supabase
       .from("conversations")
       .select(`
-        id, student_id, company_id, admin_participant_id, updated_at,
+        id, student_id, company_id, admin_participant_id, updated_at
         
 
       `)
