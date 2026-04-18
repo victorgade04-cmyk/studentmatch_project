@@ -51,60 +51,6 @@ export async function getOrCreateConversationAdmin(
   targetUserId: string
 ): Promise<{ conversationId: string } | { error: string }> {
   try {
-cat > app/dashboard/messages/actions.ts << 'EOF'
-"use server";
-
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { sendNewMessageEmail } from "@/lib/email";
-
-async function getUser() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Ikke logget ind");
-  return { supabase, user };
-}
-
-export async function getOrCreateConversation(
-  otherUserId: string
-): Promise<{ conversationId: string } | { error: string }> {
-  try {
-    const { supabase, user } = await getUser();
-    const role = user.user_metadata?.role as string;
-
-    if (role !== "student" && role !== "company") {
-      return { error: "Kun studerende og virksomheder kan starte samtaler." };
-    }
-
-    const studentId = role === "student" ? user.id : otherUserId;
-    const companyId = role === "company" ? user.id : otherUserId;
-
-    const { data: existing } = await supabase
-      .from("conversations")
-      .select("id")
-      .eq("student_id", studentId)
-      .eq("company_id", companyId)
-      .maybeSingle();
-
-    if (existing) return { conversationId: existing.id };
-
-    const { data: created, error } = await supabase
-      .from("conversations")
-      .insert({ student_id: studentId, company_id: companyId })
-      .select("id")
-      .single();
-
-    if (error || !created) return { error: "Kunne ikke oprette samtale." };
-    return { conversationId: created.id };
-  } catch (e: any) {
-    return { error: e.message };
-  }
-}
-
-export async function getOrCreateConversationAdmin(
-  targetUserId: string
-): Promise<{ conversationId: string } | { error: string }> {
-  try {
     const { user } = await getUser();
     if (user.user_metadata?.role !== "admin") {
       return { error: "Kun admins kan bruge denne funktion." };
