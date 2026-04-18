@@ -98,7 +98,7 @@ export default function MessagesPage() {
     uid: string,
     supabase: ReturnType<typeof createClient>
   ): Promise<Conversation[]> {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("conversations")
       .select(`
         id, student_id, company_id, admin_participant_id, updated_at,
@@ -107,6 +107,7 @@ export default function MessagesPage() {
       `)
       .or(`student_id.eq.${uid},company_id.eq.${uid},admin_participant_id.eq.${uid}`)
       .order("updated_at", { ascending: false });
+    console.log("[messages] loadConversations error:", error, "data:", data);
 
     const convs = (data as unknown as Conversation[]) || [];
     setConversations(convs);
