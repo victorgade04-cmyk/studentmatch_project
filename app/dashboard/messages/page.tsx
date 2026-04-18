@@ -13,6 +13,8 @@ type Conversation = {
   updated_at: string;
   student_profiles: { full_name: string | null } | null;
   company_profiles: { company_name: string | null } | null;
+  other_name?: string | null;
+  other_name?: string | null;
 };
 
 type Message = {
@@ -109,10 +111,35 @@ export default function MessagesPage() {
       .order("updated_at", { ascending: false });
     console.log("[messages] loadConversations error:", error, "data:", data);
 
-    const convs = (data as unknown as Conversation[]) || [];
-    setConversations(convs);
+    const rawConvs = (data as unknown as Conversation[]) || [];
+
+    // Fetch names separately for each conversation
+    const convsWithNames = await Promise.all(rawConvs.map(async (conv) => {
+      const otherId = conv.student_id !== uid ? conv.student_id : conv.company_id;
+      if (!otherId) return conv;
+
+      // Try student_profiles first
+      const { data: sp } = await supabase
+        .from("student_profiles")
+        .select("full_name")
+        .eq("id", otherId)
+        .maybeSingle();
+      if (sp?.full_name) return { ...conv, other_name: sp.full_name };
+
+      // Try company_profiles
+      const { data: cp } = await supabase
+        .from("company_profiles")
+        .select("company_name")
+        .eq("id", otherId)
+        .maybeSingle();
+      if (cp?.company_name) return { ...conv, other_name: cp.company_name };
+
+      return conv;
+    }));
+
+    setConversations(convsWithNames);
     setLoadingConvs(false);
-    return convs;
+    return convsWithNames;
   }
 
   // Load messages + subscribe to real-time updates for selected conversation
@@ -167,16 +194,10 @@ export default function MessagesPage() {
   };
 
   function getOtherName(conv: Conversation): string {
-    if (userRole === "admin") {
-      // Admin conversation: the other party is whichever side is not admin
-      return (
-        conv.student_profiles?.full_name ||
-        conv.company_profiles?.company_name ||
-        "Bruger"
-      );
-    }
-    if (userRole === "student") return conv.company_profiles?.company_name || "Virksomhed";
-    return conv.student_profiles?.full_name || "Kandidat";
+    if (conv.other_name) return conv.other_name;
+    if (userRole === "admin") return "Bruger";
+    if (userRole === "student") return "Virksomhed";
+    return "Kandidat";
   }
 
   function getOtherRole(conv: Conversation): string {
