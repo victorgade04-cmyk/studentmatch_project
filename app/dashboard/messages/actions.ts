@@ -143,9 +143,7 @@ export async function sendMessage(
 
     const { data: conv } = await supabase
       .from("conversations")
-      .select(
-        "id, student_id, company_id, admin_participant_id, student_profiles(full_name), company_profiles(company_name)"
-      )
+      .select("id, student_id, company_id, admin_participant_id")
       .eq("id", conversationId)
       .single();
 
