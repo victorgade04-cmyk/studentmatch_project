@@ -38,6 +38,7 @@ export default function MessagesPage() {
   const [sending, setSending] = useState(false);
   const [loadingConvs, setLoadingConvs] = useState(true);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [initError, setInitError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -58,6 +59,8 @@ export default function MessagesPage() {
         if ("conversationId" in result) {
           setSelectedId(result.conversationId);
           await loadConversations(user.id, supabase);
+        } else {
+          setInitError(result.error);
         }
       } else if (withUserId) {
         // Student/company flow: get or create conversation between roles
@@ -65,6 +68,8 @@ export default function MessagesPage() {
         if ("conversationId" in result) {
           setSelectedId(result.conversationId);
           await loadConversations(user.id, supabase);
+        } else {
+          setInitError(result.error);
         }
       } else if (convs.length > 0) {
         setSelectedId(convs[0].id);
@@ -295,7 +300,11 @@ export default function MessagesPage() {
         </div>
       ) : (
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-sm text-gray-400">Vælg en samtale for at begynde</p>
+          {initError ? (
+            <p className="text-sm text-red-500">{initError}</p>
+          ) : (
+            <p className="text-sm text-gray-400">Vælg en samtale for at begynde</p>
+          )}
         </div>
       )}
     </div>

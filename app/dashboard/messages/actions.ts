@@ -70,6 +70,29 @@ export async function getOrCreateConversationAdmin(
     if (!targetUser) return { error: "Bruger ikke fundet." };
     const targetRole = targetUser.role as string;
 
+    if (targetRole !== "student" && targetRole !== "company") {
+      return { error: "Kan kun starte samtaler med studerende eller virksomheder." };
+    }
+
+    // Verify the target user actually has a profile — the conversations table
+    // has FK constraints to student_profiles/company_profiles, so inserting
+    // without an existing profile would fail with a constraint violation.
+    if (targetRole === "student") {
+      const { data: profile } = await admin
+        .from("student_profiles")
+        .select("id")
+        .eq("id", targetUserId)
+        .maybeSingle();
+      if (!profile) return { error: "Denne bruger har endnu ikke oprettet en kandidatprofil." };
+    } else {
+      const { data: profile } = await admin
+        .from("company_profiles")
+        .select("id")
+        .eq("id", targetUserId)
+        .maybeSingle();
+      if (!profile) return { error: "Denne virksomhed har endnu ikke oprettet en profil." };
+    }
+
     // Check for existing conversation between this admin and target
     let existing: { id: string } | null = null;
     if (targetRole === "student") {
@@ -96,7 +119,7 @@ export async function getOrCreateConversationAdmin(
     const insertData: Record<string, string> = { admin_participant_id: user.id };
     if (targetRole === "student") {
       insertData.student_id = targetUserId;
-    } else if (targetRole === "company") {
+    } else {
       insertData.company_id = targetUserId;
     }
 
