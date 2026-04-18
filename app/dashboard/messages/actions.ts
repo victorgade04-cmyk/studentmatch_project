@@ -52,7 +52,8 @@ export async function getOrCreateConversationAdmin(
 ): Promise<{ conversationId: string } | { error: string }> {
   try {
     const { user } = await getUser();
-    if (user.user_metadata?.role !== "admin") {
+    const adminRole = user.user_metadata?.role ?? user.app_metadata?.role;
+    if (adminRole !== "admin") {
       return { error: "Kun admins kan bruge denne funktion." };
     }
 
