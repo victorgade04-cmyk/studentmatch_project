@@ -11,12 +11,16 @@ async function getUser() {
   return { supabase, user };
 }
 
+function getRole(user: any): string | null {
+  return user.user_metadata?.role ?? user.app_metadata?.role ?? null;
+}
+
 export async function getOrCreateConversation(
   otherUserId: string
 ): Promise<{ conversationId: string } | { error: string }> {
   try {
     const { supabase, user } = await getUser();
-    const role = user.user_metadata?.role as string;
+    const role = getRole(user);
 
     if (role !== "student" && role !== "company") {
       return { error: "Kun studerende og virksomheder kan starte samtaler." };
@@ -25,7 +29,6 @@ export async function getOrCreateConversation(
     const studentId = role === "student" ? user.id : otherUserId;
     const companyId = role === "company" ? user.id : otherUserId;
 
-    // Try existing
     const { data: existing } = await supabase
       .from("conversations")
       .select("id")
@@ -35,7 +38,6 @@ export async function getOrCreateConversation(
 
     if (existing) return { conversationId: existing.id };
 
-    // Create new
     const { data: created, error } = await supabase
       .from("conversations")
       .insert({ student_id: studentId, company_id: companyId })
@@ -54,13 +56,14 @@ export async function getOrCreateConversationAdmin(
 ): Promise<{ conversationId: string } | { error: string }> {
   try {
     const { user } = await getUser();
-    if (user.user_metadata?.role !== "admin") {
+    const role = getRole(user);
+
+    if (role !== "admin") {
       return { error: "Kun admins kan bruge denne funktion." };
     }
 
     const admin = createAdminClient();
 
-    // Look up target user's role
     const { data: targetUser } = await admin
       .from("users")
       .select("role")
@@ -74,9 +77,6 @@ export async function getOrCreateConversationAdmin(
       return { error: "Kan kun starte samtaler med studerende eller virksomheder." };
     }
 
-    // Verify the target user actually has a profile — the conversations table
-    // has FK constraints to student_profiles/company_profiles, so inserting
-    // without an existing profile would fail with a constraint violation.
     if (targetRole === "student") {
       const { data: profile } = await admin
         .from("student_profiles")
@@ -93,7 +93,6 @@ export async function getOrCreateConversationAdmin(
       if (!profile) return { error: "Denne virksomhed har endnu ikke oprettet en profil." };
     }
 
-    // Check for existing conversation between this admin and target
     let existing: { id: string } | null = null;
     if (targetRole === "student") {
       const { data } = await admin
@@ -115,7 +114,6 @@ export async function getOrCreateConversationAdmin(
 
     if (existing) return { conversationId: existing.id };
 
-    // Create new
     const insertData: Record<string, string> = { admin_participant_id: user.id };
     if (targetRole === "student") {
       insertData.student_id = targetUserId;
@@ -143,7 +141,6 @@ export async function sendMessage(
   try {
     const { supabase, user } = await getUser();
 
-    // Verify user belongs to this conversation
     const { data: conv } = await supabase
       .from("conversations")
       .select(
@@ -170,13 +167,11 @@ export async function sendMessage(
 
     if (error) return { error: error.message };
 
-    // Update conversation timestamp
     await supabase
       .from("conversations")
       .update({ updated_at: new Date().toISOString() })
       .eq("id", conversationId);
 
-    // Email notification (best effort)
     try {
       const isAdmin = conv.admin_participant_id === user.id;
       let recipientId: string;
