@@ -14,7 +14,6 @@ type Conversation = {
   student_profiles: { full_name: string | null } | null;
   company_profiles: { company_name: string | null } | null;
   other_name?: string | null;
-  other_name?: string | null;
 };
 
 type Message = {
