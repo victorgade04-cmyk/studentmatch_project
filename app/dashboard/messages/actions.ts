@@ -170,31 +170,13 @@ export async function sendMessage(
       .update({ updated_at: new Date().toISOString() })
       .eq("id", conversationId);
 
+
+    // Email notification (best effort)
     try {
       const isAdmin = conv.admin_participant_id === user.id;
-      let recipientId: string;
-      let senderName: string;
-      let recipientName: string;
-
-      if (isAdmin) {
-        senderName = "Admin";
-        if (conv.student_id) {
-          recipientId = conv.student_id;
-          recipientName = (conv.student_profiles as any)?.full_name || "Kandidat";
-        } else {
-          recipientId = conv.company_id!;
-          recipientName = (conv.company_profiles as any)?.company_name || "Virksomhed";
-        }
-      } else {
-        const isStudent = conv.student_id === user.id;
-        recipientId = isStudent ? conv.company_id! : conv.student_id!;
-        senderName = isStudent
-          ? (conv.student_profiles as any)?.full_name || "Kandidat"
-          : (conv.company_profiles as any)?.company_name || "Virksomhed";
-        recipientName = !isStudent
-          ? (conv.student_profiles as any)?.full_name || "Kandidat"
-          : (conv.company_profiles as any)?.company_name || "Virksomhed";
-      }
+      const recipientId = isAdmin
+        ? (conv.student_id || conv.company_id!)
+        : (conv.student_id === user.id ? conv.company_id! : conv.student_id!);
 
       const { data: recipientUser } = await supabase
         .from("users")
@@ -204,6 +186,13 @@ export async function sendMessage(
 
       if (recipientUser?.email) {
         await sendNewMessageEmail({
+          recipientEmail: recipientUser.email,
+          recipientName: "Bruger",
+          senderName: isAdmin ? "Admin" : "Bruger",
+          messagePreview: content.slice(0, 300),
+        });
+      }
+    } catch {}
           recipientEmail: recipientUser.email,
           recipientName,
           senderName,
