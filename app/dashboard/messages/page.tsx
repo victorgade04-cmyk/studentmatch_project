@@ -57,8 +57,10 @@ export default function MessagesPage() {
         // Admin flow: get or create conversation with any user
         const result = await getOrCreateConversationAdmin(adminTargetUserId);
         if ("conversationId" in result) {
-          setSelectedId(result.conversationId);
+          // Load conversations first so the list is up-to-date before we set
+          // selectedId — both state updates then land in the same render batch.
           await loadConversations(user.id, supabase);
+          setSelectedId(result.conversationId);
         } else {
           setInitError(result.error);
         }
@@ -66,8 +68,8 @@ export default function MessagesPage() {
         // Student/company flow: get or create conversation between roles
         const result = await getOrCreateConversation(withUserId);
         if ("conversationId" in result) {
-          setSelectedId(result.conversationId);
           await loadConversations(user.id, supabase);
+          setSelectedId(result.conversationId);
         } else {
           setInitError(result.error);
         }
