@@ -102,7 +102,7 @@ export default function MessagesPage() {
       .from("conversations")
       .select(`
         id, student_id, company_id, admin_participant_id, updated_at,
-        student_profiles(full_name),
+        
         company_profiles(company_name)
       `)
       .or(`student_id.eq.${uid},company_id.eq.${uid},admin_participant_id.eq.${uid}`)
