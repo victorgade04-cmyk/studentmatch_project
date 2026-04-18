@@ -193,12 +193,6 @@ export async function sendMessage(
         });
       }
     } catch {}
-          recipientEmail: recipientUser.email,
-          recipientName,
-          senderName,
-          messagePreview: content.slice(0, 300),
-        });
-      }
     } catch {}
 
     return {};
