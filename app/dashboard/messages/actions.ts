@@ -131,7 +131,8 @@ export async function sendMessage(
   try {
     const { supabase, user } = await getUser();
 
-    const { data: conv } = await supabase
+    const adminClient = createAdminClient();
+    const { data: conv } = await adminClient
       .from("conversations")
       .select("id, student_id, company_id, admin_participant_id")
       .eq("id", conversationId)
