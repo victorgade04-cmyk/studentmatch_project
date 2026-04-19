@@ -59,14 +59,9 @@ export async function getOrCreateConversationAdmin(
 
     const admin = createAdminClient();
 
-    const { data: targetUser } = await admin
-      .from("users")
-      .select("role")
-      .eq("id", targetUserId)
-      .single();
-
-    if (!targetUser) return { error: "Bruger ikke fundet." };
-    const targetRole = targetUser.role as string;
+    const { data: { user: targetAuthUser }, error: authErr } = await admin.auth.admin.getUserById(targetUserId);
+    if (authErr || !targetAuthUser) return { error: "Bruger ikke fundet." };
+    const targetRole = (targetAuthUser.user_metadata?.role ?? targetAuthUser.app_metadata?.role) as string;
 
     if (targetRole !== "student" && targetRole !== "company") {
       return { error: "Kan kun starte samtaler med studerende eller virksomheder." };
