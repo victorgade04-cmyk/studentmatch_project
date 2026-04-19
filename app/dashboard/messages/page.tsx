@@ -69,10 +69,9 @@ export default function MessagesPage() {
         const result = await getOrCreateConversationAdmin(adminTargetUserId);
         console.log("[messages] getOrCreateConversationAdmin result:", result);
         if ("conversationId" in result) {
-          // Load conversations first so the list is up-to-date before we set
-          // selectedId — both state updates land in the same render batch.
           await loadConversations(user.id, supabase);
-          setSelectedId(result.conversationId);
+          // Small delay to ensure state update from loadConversations lands first
+          setTimeout(() => setSelectedId(result.conversationId), 50);
         } else {
           setInitError(result.error);
         }
