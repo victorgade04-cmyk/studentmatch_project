@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import AdminPreviewBar from "./AdminPreviewBar";
+import ImpersonationBanner from "./ImpersonationBanner";
 import DashboardSidebar from "./DashboardSidebar";
 
 export default async function DashboardLayout({
@@ -23,6 +24,10 @@ export default async function DashboardLayout({
       {/* Admin preview bar — only shown when ?preview=admin is in the URL */}
       <Suspense>
         <AdminPreviewBar />
+      </Suspense>
+      {/* Impersonation banner — shown when admin is logged in as another user */}
+      <Suspense>
+        <ImpersonationBanner />
       </Suspense>
 
       <div className="flex flex-1">

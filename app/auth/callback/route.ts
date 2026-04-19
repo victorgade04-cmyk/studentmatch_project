@@ -12,7 +12,9 @@ export async function GET(request: Request) {
       await supabase.auth.exchangeCodeForSession(code);
     if (!error && data.user) {
       const role = data.user.user_metadata?.role || "student";
-      return NextResponse.redirect(`${origin}/dashboard/${role}`);
+      const impersonated = searchParams.get("impersonated") === "true";
+      const dest = `${origin}/dashboard/${role}${impersonated ? "?impersonated=true" : ""}`;
+      return NextResponse.redirect(dest);
     }
   }
 

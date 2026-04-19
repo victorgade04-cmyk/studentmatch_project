@@ -9,6 +9,7 @@ import {
   updateCompanyProfileAdmin,
   deleteUserAdmin,
 } from "../../actions";
+import { generateImpersonationLink } from "./actions";
 import { PackageId } from "@/lib/packages";
 import SkillsInput from "@/app/dashboard/student/profile/SkillsInput";
 
@@ -54,6 +55,8 @@ export default function AdminUserProfilePage() {
   const [loading, setLoading] = useState(true);
   const [deleteState, deleteAction, deleting] = useActionState(deleteUserAdmin, {});
   const [deleteConfirmed, setDeleteConfirmed] = useState(false);
+  const [impersonating, setImpersonating] = useState(false);
+  const [impersonateError, setImpersonateError] = useState<string | null>(null);
 
   const [studentState, studentAction, savingStudent] = useActionState(
     updateStudentProfileAdmin,
@@ -108,6 +111,18 @@ export default function AdminUserProfilePage() {
       router.push("/dashboard/admin/users");
     }
   }, [deleteState, router]);
+
+  async function handleImpersonate() {
+    setImpersonating(true);
+    setImpersonateError(null);
+    const result = await generateImpersonationLink(userId);
+    setImpersonating(false);
+    if ("error" in result) {
+      setImpersonateError(result.error);
+    } else {
+      window.open(result.url, "_blank", "noopener,noreferrer");
+    }
+  }
 
   function handleDeleteClick() {
     if (
@@ -171,12 +186,31 @@ export default function AdminUserProfilePage() {
             · Oprettet {new Date(user.created_at).toLocaleDateString("da-DK")}
           </p>
         </div>
-        <Link
-          href={`/dashboard/messages?user=${user.id}`}
-          className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          Send besked
-        </Link>
+        <div className="flex flex-col items-end gap-2">
+          <Link
+            href={`/dashboard/messages?user=${user.id}`}
+            className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Send besked
+          </Link>
+          {(user.role === "student" || user.role === "company") && (
+            <button
+              type="button"
+              onClick={handleImpersonate}
+              disabled={impersonating}
+              className="px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 disabled:opacity-60 transition-colors"
+            >
+              {impersonating
+                ? "Genererer link…"
+                : user.role === "student"
+                ? "Log ind som denne Kandidat"
+                : "Log ind som denne Virksomhed"}
+            </button>
+          )}
+          {impersonateError && (
+            <p className="text-xs text-red-600 max-w-[200px] text-right">{impersonateError}</p>
+          )}
+        </div>
       </div>
 
       {/* Student profile form */}
