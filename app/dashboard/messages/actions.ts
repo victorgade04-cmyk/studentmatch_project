@@ -120,7 +120,7 @@ export async function getOrCreateConversationAdmin(
     if (error || !created) return { error: "Kunne ikke oprette samtale." };
     return { conversationId: created.id };
   } catch (e: any) {
-    return { error: e.message };
+    return { error: `Admin fejl: ${e.message}` };
   }
 }
 
