@@ -11,9 +11,7 @@ type Conversation = {
   company_id: string | null;
   admin_participant_id: string | null;
   updated_at: string;
-  student_profiles: { full_name: string | null } | null;
-  company_profiles: { company_name: string | null } | null;
-  other_name?: string | null;
+  other_name?: string;
 };
 
 type Message = {
@@ -26,14 +24,13 @@ type Message = {
 
 export default function MessagesPage() {
   const searchParams = useSearchParams();
-  // ?with= is used by student/company flows; ?user= is used by admin
   const withUserId = searchParams.get("with");
   const adminTargetUserId = searchParams.get("user");
 
   const [userId, setUserId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -43,293 +40,152 @@ export default function MessagesPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Load user + conversations, handle ?with= and ?user= params
   useEffect(() => {
-    console.log("[messages] effect fired — adminTargetUserId:", adminTargetUserId, "withUserId:", withUserId);
     const supabase = createClient();
     supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) {
-        console.log("[messages] no authenticated user");
-        return;
-      }
+      if (!user) return;
       setUserId(user.id);
-      // Supabase stores admin-assigned roles in app_metadata; user-set metadata
-      // goes to user_metadata. Check both so either setup works.
-      const role =
-        user.user_metadata?.role ?? user.app_metadata?.role ?? null;
-      console.log("[messages] user id:", user.id, "role:", role, "user_metadata:", user.user_metadata, "app_metadata:", user.app_metadata);
+      const role = user.user_metadata?.role ?? user.app_metadata?.role ?? null;
       setUserRole(role);
 
       const convs = await loadConversations(user.id, supabase);
-      console.log("[messages] initial conversations loaded:", convs.length);
 
       if (adminTargetUserId && role === "admin") {
-        // Admin flow: get or create conversation with any user
-        console.log("[messages] calling getOrCreateConversationAdmin for", adminTargetUserId);
         const result = await getOrCreateConversationAdmin(adminTargetUserId);
-        console.log("[messages] getOrCreateConversationAdmin result:", result);
         if ("conversationId" in result) {
-          await loadConversations(user.id, supabase);
-          // Small delay to ensure state update from loadConversations lands first
-          setTimeout(() => setSelectedId(result.conversationId), 50);
+          const fresh = await loadConversations(user.id, supabase);
+          const conv = fresh.find(c => c.id === result.conversationId) ?? null;
+          setSelectedConv(conv);
         } else {
           setInitError(result.error);
         }
       } else if (withUserId) {
-        // Student/company flow: get or create conversation between roles
-        console.log("[messages] calling getOrCreateConversation for", withUserId);
         const result = await getOrCreateConversation(withUserId);
-        console.log("[messages] getOrCreateConversation result:", result);
         if ("conversationId" in result) {
-          await loadConversations(user.id, supabase);
-          setSelectedId(result.conversationId);
+          const fresh = await loadConversations(user.id, supabase);
+          const conv = fresh.find(c => c.id === result.conversationId) ?? null;
+          setSelectedConv(conv);
         } else {
           setInitError(result.error);
         }
       } else if (convs.length > 0) {
-        setSelectedId(convs[0].id);
-      } else {
-        console.log("[messages] no query param and no existing conversations — idle");
+        setSelectedConv(convs[0]);
       }
     });
   }, [withUserId, adminTargetUserId]);
 
-  async function loadConversations(
-    uid: string,
-    supabase: ReturnType<typeof createClient>
-  ): Promise<Conversation[]> {
-    const { data, error } = await supabase
+  async function loadConversations(uid: string, supabase: ReturnType<typeof createClient>): Promise<Conversation[]> {
+    const { data } = await supabase
       .from("conversations")
-      .select(`
-        id, student_id, company_id, admin_participant_id, updated_at
-        
-
-      `)
+      .select("id, student_id, company_id, admin_participant_id, updated_at")
       .or(`student_id.eq.${uid},company_id.eq.${uid},admin_participant_id.eq.${uid}`)
       .order("updated_at", { ascending: false });
-    console.log("[messages] loadConversations error:", error, "data:", data);
 
-    const rawConvs = (data as unknown as Conversation[]) || [];
+    const raw = (data as Conversation[]) || [];
 
-    // Fetch names separately for each conversation
-    const convsWithNames = await Promise.all(rawConvs.map(async (conv) => {
-      const otherId = conv.student_id !== uid ? conv.student_id : conv.company_id;
+    const withNames = await Promise.all(raw.map(async (conv) => {
+      const otherId = conv.admin_participant_id === uid
+        ? (conv.student_id || conv.company_id)
+        : (conv.student_id !== uid ? conv.student_id : conv.company_id);
       if (!otherId) return conv;
 
-      // Try student_profiles first
-      const { data: sp } = await supabase
-        .from("student_profiles")
-        .select("full_name")
-        .eq("id", otherId)
-        .maybeSingle();
+      const { data: sp } = await supabase.from("student_profiles").select("full_name").eq("id", otherId).maybeSingle();
       if (sp?.full_name) return { ...conv, other_name: sp.full_name };
 
-      // Try company_profiles
-      const { data: cp } = await supabase
-        .from("company_profiles")
-        .select("company_name")
-        .eq("id", otherId)
-        .maybeSingle();
+      const { data: cp } = await supabase.from("company_profiles").select("company_name").eq("id", otherId).maybeSingle();
       if (cp?.company_name) return { ...conv, other_name: cp.company_name };
 
       return conv;
     }));
 
-    setConversations(convsWithNames);
+    setConversations(withNames);
     setLoadingConvs(false);
-    return convsWithNames;
+    return withNames;
   }
 
-  // Load messages + subscribe to real-time updates for selected conversation
   useEffect(() => {
-    if (!selectedId) return;
+    if (!selectedConv) return;
     const supabase = createClient();
 
-    supabase
-      .from("messages")
-      .select("*")
-      .eq("conversation_id", selectedId)
+    supabase.from("messages").select("*").eq("conversation_id", selectedConv.id)
       .order("created_at", { ascending: true })
       .then(({ data }) => setMessages((data as Message[]) || []));
 
-    const channel = supabase
-      .channel(`msgs:${selectedId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `conversation_id=eq.${selectedId}`,
-        },
-        (payload) => setMessages((prev) => [...prev, payload.new as Message])
-      )
+    const channel = supabase.channel(`msgs:${selectedConv.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${selectedConv.id}` },
+        (payload) => setMessages((prev) => [...prev, payload.new as Message]))
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [selectedId]);
+    return () => { supabase.removeChannel(channel); };
+  }, [selectedConv?.id]);
 
-  // Auto-scroll to latest message
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const handleSend = async () => {
     const text = draft.trim();
-    if (!text || !selectedId || sending) return;
+    if (!text || !selectedConv || sending) return;
     setSending(true);
     setSendError(null);
     setDraft("");
-    const result = await sendMessage(selectedId, text);
-    if (result.error) {
-      setSendError(result.error);
-      setDraft(text);
-    }
+    const result = await sendMessage(selectedConv.id, text);
+    if (result.error) { setSendError(result.error); setDraft(text); }
     setSending(false);
     inputRef.current?.focus();
   };
 
   function getOtherName(conv: Conversation): string {
-    if (conv.other_name) return conv.other_name;
-    if (userRole === "admin") return "Bruger";
-    if (userRole === "student") return "Virksomhed";
-    return "Kandidat";
+    return conv.other_name || (userRole === "student" ? "Virksomhed" : userRole === "company" ? "Kandidat" : "Bruger");
   }
-
-  function getOtherRole(conv: Conversation): string {
-    if (userRole === "admin") {
-      return conv.student_id ? "Arbejdssøgende" : "Virksomhed";
-    }
-    if (userRole === "student") return "Virksomhed";
-    return "Arbejdssøgende";
-  }
-
-  const selectedConv = conversations.find((c) => c.id === selectedId) ?? null;
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      {/* ── Left: conversation list ── */}
       <aside className="w-64 flex-shrink-0 border-r border-gray-100 bg-white flex flex-col">
         <div className="px-5 py-4 border-b border-gray-100">
           <h1 className="font-black text-gray-900 text-base">Beskeder</h1>
         </div>
-
         <div className="flex-1 overflow-y-auto">
-          {loadingConvs ? (
-            <p className="p-5 text-sm text-gray-400">Indlæser…</p>
-          ) : conversations.length === 0 ? (
-            <div className="p-5 text-center">
-              <p className="text-sm text-gray-400 leading-relaxed">
-                Ingen samtaler endnu.
-                {userRole === "company" && (
-                  <>
-                    {" "}
-                    Find kandidater og klik på <strong>Send besked</strong>.
-                  </>
-                )}
-                {userRole === "student" && (
-                  <>
-                    {" "}
-                    Klik på <strong>Send besked</strong> på et jobopslag.
-                  </>
-                )}
-              </p>
-            </div>
-          ) : (
+          {loadingConvs ? <p className="p-5 text-sm text-gray-400">Indlæser…</p> :
+            conversations.length === 0 ? <p className="p-5 text-sm text-gray-400">Ingen samtaler endnu.</p> :
             conversations.map((conv) => (
-              <button
-                key={conv.id}
-                onClick={() => setSelectedId(conv.id)}
-                className={`w-full text-left px-5 py-3.5 border-b border-gray-50 hover:bg-gray-50 transition-colors ${
-                  selectedId === conv.id
-                    ? "bg-gray-50 border-l-2 border-l-gray-900"
-                    : ""
-                }`}
-              >
-                <p className="text-sm font-semibold text-gray-900 truncate">
-                  {getOtherName(conv)}
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {new Date(conv.updated_at).toLocaleDateString("da-DK", {
-                    day: "numeric",
-                    month: "short",
-                  })}
-                </p>
+              <button key={conv.id} onClick={() => setSelectedConv(conv)}
+                className={`w-full text-left px-5 py-3.5 border-b border-gray-50 hover:bg-gray-50 transition-colors ${selectedConv?.id === conv.id ? "bg-gray-50 border-l-2 border-l-gray-900" : ""}`}>
+                <p className="text-sm font-semibold text-gray-900 truncate">{getOtherName(conv)}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{new Date(conv.updated_at).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}</p>
               </button>
             ))
-          )}
+          }
         </div>
       </aside>
 
-      {/* ── Right: message thread ── */}
       {selectedConv ? (
         <div className="flex-1 flex flex-col min-w-0">
-          {/* Thread header */}
           <div className="px-6 py-4 border-b border-gray-100 bg-white flex-shrink-0">
             <p className="font-bold text-gray-900">{getOtherName(selectedConv)}</p>
-            <p className="text-xs text-gray-400 mt-0.5">{getOtherRole(selectedConv)}</p>
           </div>
-
-          {/* Messages */}
           <div className="flex-1 overflow-y-auto p-6 space-y-3">
-            {messages.length === 0 && (
-              <p className="text-center text-sm text-gray-400 py-8">
-                Ingen beskeder endnu. Send den første besked!
-              </p>
-            )}
+            {messages.length === 0 && <p className="text-center text-sm text-gray-400 py-8">Ingen beskeder endnu. Send den første besked!</p>}
             {messages.map((msg) => {
               const isMe = msg.sender_id === userId;
               return (
-                <div
-                  key={msg.id}
-                  className={`flex ${isMe ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                      isMe
-                        ? "bg-gray-900 text-white rounded-br-sm"
-                        : "bg-white border border-gray-100 text-gray-800 rounded-bl-sm shadow-sm"
-                    }`}
-                  >
+                <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-xs lg:max-w-md px-4 py-2.5 rounded-2xl text-sm ${isMe ? "bg-gray-900 text-white" : "bg-white border border-gray-100 text-gray-800 shadow-sm"}`}>
                     <p>{msg.content}</p>
-                    <p className="text-xs mt-1.5 text-gray-400">
-                      {new Date(msg.created_at).toLocaleTimeString("da-DK", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
+                    <p className="text-xs mt-1.5 opacity-60">{new Date(msg.created_at).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}</p>
                   </div>
                 </div>
               );
             })}
             <div ref={bottomRef} />
           </div>
-
-          {/* Input */}
           <div className="p-4 border-t border-gray-100 bg-white flex-shrink-0">
             {sendError && <p className="text-xs text-red-600 mb-2">{sendError}</p>}
             <div className="flex gap-3">
-              <input
-                ref={inputRef}
-                type="text"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
+              <input ref={inputRef} type="text" value={draft} onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                 placeholder="Skriv en besked…"
-                className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder-gray-400"
-              />
-              <button
-                onClick={handleSend}
-                disabled={!draft.trim() || sending}
-                className="px-5 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 disabled:opacity-40 transition-colors whitespace-nowrap"
-              >
+                className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder-gray-400" />
+              <button onClick={handleSend} disabled={!draft.trim() || sending}
+                className="px-5 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 disabled:opacity-40 transition-colors">
                 {sending ? "…" : "Send"}
               </button>
             </div>
@@ -337,11 +193,7 @@ export default function MessagesPage() {
         </div>
       ) : (
         <div className="flex-1 flex items-center justify-center">
-          {initError ? (
-            <p className="text-sm text-red-500">{initError}</p>
-          ) : (
-            <p className="text-sm text-gray-400">Vælg en samtale for at begynde</p>
-          )}
+          {initError ? <p className="text-sm text-red-500">{initError}</p> : <p className="text-sm text-gray-400">Vælg en samtale for at begynde</p>}
         </div>
       )}
     </div>
