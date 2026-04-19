@@ -129,6 +129,14 @@ export default function MessagesPage() {
     setDraft("");
     const result = await sendMessage(selectedConv.id, text);
     if (result.error) { setSendError(result.error); setDraft(text); }
+    else {
+      // Manually reload messages in case WebSocket is down
+      const supabase = createClient();
+      const { data } = await supabase.from("messages").select("*")
+        .eq("conversation_id", selectedConv.id)
+        .order("created_at", { ascending: true });
+      if (data) setMessages(data as Message[]);
+    }
     setSending(false);
     inputRef.current?.focus();
   };
