@@ -142,8 +142,11 @@ export default function MessagesPage() {
   };
 
   function getOtherName(conv: Conversation): string {
-    // If this is an admin conversation, the other party sees "StudentMatch"
-    if (conv.admin_participant_id) return "StudentMatch";
+    // Admin sees the other person's name; others see "StudentMatch"
+    if (conv.admin_participant_id) {
+      if (userRole === "admin") return conv.other_name || "Bruger";
+      return "StudentMatch";
+    }
     if (conv.other_name) return conv.other_name;
     if (userRole === "student") return "Virksomhed";
     if (userRole === "company") return "Kandidat";
