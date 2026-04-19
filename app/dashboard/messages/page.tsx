@@ -83,7 +83,6 @@ export default function MessagesPage() {
 
     const raw = (data as Conversation[]) || [];
 
-    console.log("[loadConv] raw convs:", raw.map(c => ({ id: c.id, student_id: c.student_id, company_id: c.company_id, admin_participant_id: c.admin_participant_id })));
     const withNames = await Promise.all(raw.map(async (conv) => {
       const otherId = conv.admin_participant_id === uid
         ? (conv.student_id || conv.company_id)
