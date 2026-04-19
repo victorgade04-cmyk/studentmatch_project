@@ -16,7 +16,7 @@ export default async function DashboardLayout({
 
   if (!user) redirect("/login");
 
-  const role = (user.user_metadata?.role || "student") as "admin" | "student" | "company";
+  const role = (user.user_metadata?.role ?? user.app_metadata?.role ?? "student") as "admin" | "student" | "company";
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
