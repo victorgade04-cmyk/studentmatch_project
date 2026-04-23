@@ -63,27 +63,27 @@ export default function CompanyDashboard() {
         {profile?.company_name || "Company Dashboard"}
       </h1>
       <p className="text-gray-500 text-sm mb-8">
-        Manage jobs and find students{isPreview ? " (admin preview)" : ""}
+        Administrér jobs og find kandidater{isPreview ? " (admin preview)" : ""}
       </p>
 
       {!profile?.company_name && (
         <div className="mb-6 bg-gray-900 rounded-xl p-4 flex items-center justify-between">
-          <p className="text-sm text-gray-300">Complete your company profile to attract students.</p>
+          <p className="text-sm text-gray-300">Udfyld din virksomhedsprofil for at tiltrække kandidater.</p>
           <PreviewLink
             href="/dashboard/company/profile"
             className="text-sm font-semibold text-white border border-white/30 rounded-lg px-3 py-1.5 hover:bg-white/10 transition-colors whitespace-nowrap ml-4"
           >
-            Set up profile
+            Opret profil
           </PreviewLink>
         </div>
       )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
-          { label: "Total Jobs", value: jobs.length, color: "text-gray-900" },
-          { label: "Open Jobs", value: openJobs, color: "text-green-600" },
-          { label: "Total Applications", value: apps.length, color: "text-gray-900" },
-          { label: "Pending Review", value: pendingApps, color: "text-yellow-600" },
+          { label: "Jobopslag i alt", value: jobs.length, color: "text-gray-900" },
+          { label: "Aktive jobs", value: openJobs, color: "text-green-600" },
+          { label: "Ansøgninger i alt", value: apps.length, color: "text-gray-900" },
+          { label: "Afventer gennemgang", value: pendingApps, color: "text-yellow-600" },
         ].map((s) => (
           <div key={s.label} className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">{s.label}</p>
@@ -94,9 +94,9 @@ export default function CompanyDashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { href: "/dashboard/company/jobs", label: "Post & Manage Jobs", desc: "Create job listings and review applicants" },
-          { href: "/dashboard/company/students", label: "Browse Students", desc: "Find students by skills and availability" },
-          { href: "/dashboard/company/profile", label: "Company Profile", desc: "Update your company info and contact details" },
+          { href: "/dashboard/company/jobs", label: "Opret & administrér jobs", desc: "Opret jobopslag og gennemgå ansøgere" },
+          { href: "/dashboard/company/students", label: "Find kandidater", desc: "Find kandidater efter kompetencer og tilgængelighed" },
+          { href: "/dashboard/company/profile", label: "Virksomhedsprofil", desc: "Opdatér virksomhedsoplysninger og kontaktinfo" },
         ].map((l) => (
           <PreviewLink
             key={l.href}

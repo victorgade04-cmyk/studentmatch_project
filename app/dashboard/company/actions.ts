@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { sendApplicationStatusEmail } from "@/lib/email";
 
@@ -169,6 +170,28 @@ export async function updateApplicationStatus(
     return { success: "Ansøgning opdateret." };
   } catch (e: any) {
     return { error: e.message };
+  }
+}
+
+export async function getCompanyJobs(): Promise<{ data: any[] | null; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { data: null, error: "Ikke logget ind." };
+
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("jobs")
+      .select(`id, title, description, budget, status, requirements, deadline, job_type, location, created_at,
+        applications(id, status, cover_letter, created_at,
+          student_profiles(full_name, skills, hourly_rate))`)
+      .eq("company_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) return { data: null, error: error.message };
+    return { data: data ?? [] };
+  } catch (e: any) {
+    return { data: null, error: e.message };
   }
 }
 

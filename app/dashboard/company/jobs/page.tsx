@@ -2,8 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
-import { createJob, toggleJobStatusDirect, updateApplicationStatus } from "../actions";
-import { createClient } from "@/lib/supabase/client";
+import { createJob, getCompanyJobs, toggleJobStatusDirect, updateApplicationStatus } from "../actions";
 
 type Application = {
   id: string;
@@ -51,20 +50,9 @@ export default function CompanyJobsPage() {
   );
 
   const fetchJobs = () => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return;
-      supabase
-        .from("jobs")
-        .select(`id, title, description, budget, status, requirements, created_at,
-          applications(id, status, cover_letter, created_at,
-            student_profiles(full_name, skills, hourly_rate))`)
-        .eq("company_id", user.id)
-        .order("created_at", { ascending: false })
-        .then(({ data }) => {
-          setJobs((data as unknown as Job[]) || []);
-          setLoading(false);
-        });
+    getCompanyJobs().then(({ data }) => {
+      setJobs((data as unknown as Job[]) || []);
+      setLoading(false);
     });
   };
 
