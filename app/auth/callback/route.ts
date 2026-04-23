@@ -5,7 +5,7 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const tokenHash = searchParams.get("token_hash");
+  const tokenHash = searchParams.get("token_hash") ?? searchParams.get("token");
   const type = searchParams.get("type") as EmailOtpType | null;
   const impersonated = searchParams.get("impersonated") === "true";
 
