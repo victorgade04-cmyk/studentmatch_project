@@ -85,6 +85,47 @@ export async function createJob(
   }
 }
 
+export async function updateJob(
+  _prev: { error?: string; success?: string },
+  formData: FormData
+): Promise<{ error?: string; success?: string }> {
+  try {
+    const { supabase, user } = await getCompany();
+    const jobId = formData.get("jobId") as string;
+    if (!jobId) return { error: "Job-id mangler." };
+
+    const title = (formData.get("title") as string).trim();
+    if (!title) return { error: "Titel er påkrævet." };
+
+    const description = (formData.get("description") as string).trim();
+    if (!description) return { error: "Beskrivelse er påkrævet." };
+
+    const requirements = (formData.get("requirements") as string)
+      .split(",").map((r) => r.trim()).filter(Boolean);
+
+    const budgetRaw = formData.get("budget") as string;
+    const budget = budgetRaw ? parseFloat(budgetRaw) : null;
+
+    const deadlineRaw = formData.get("deadline") as string;
+    const deadline = deadlineRaw || null;
+
+    const jobType = (formData.get("job_type") as string) || null;
+    const location = (formData.get("location") as string).trim() || null;
+
+    const { error } = await supabase
+      .from("jobs")
+      .update({ title, description, requirements, budget, deadline, job_type: jobType, location })
+      .eq("id", jobId)
+      .eq("company_id", user.id);
+
+    if (error) return { error: error.message };
+    revalidatePath("/dashboard/company/jobs");
+    return { success: "Job opdateret!" };
+  } catch (e: any) {
+    return { error: e.message };
+  }
+}
+
 export async function toggleJobStatus(
   _prev: { error?: string; success?: string },
   formData: FormData

@@ -3,10 +3,20 @@ import { removeJob } from "../actions";
 
 export default async function AdminJobsPage() {
   const supabase = createAdminClient();
+
+  // Fetch jobs and company profiles separately to avoid PostgREST FK join issues
   const { data: jobs } = await supabase
     .from("jobs")
-    .select("id, title, description, budget, status, created_at, company_profiles(company_name)")
+    .select("id, title, budget, status, created_at, company_id, deadline")
     .order("created_at", { ascending: false });
+
+  const companyIds = [...new Set((jobs ?? []).map((j: any) => j.company_id).filter(Boolean))];
+  const { data: companies } = companyIds.length
+    ? await supabase.from("company_profiles").select("id, company_name").in("id", companyIds)
+    : { data: [] };
+  const companyMap: Record<string, string> = Object.fromEntries(
+    (companies ?? []).map((c: any) => [c.id, c.company_name])
+  );
 
   return (
     <div className="p-8">
@@ -21,16 +31,17 @@ export default async function AdminJobsPage() {
               <th className="px-6 py-3 text-left">Virksomhed</th>
               <th className="px-6 py-3 text-left">Budget</th>
               <th className="px-6 py-3 text-left">Status</th>
+              <th className="px-6 py-3 text-left">Frist</th>
               <th className="px-6 py-3 text-left">Oprettet</th>
               <th className="px-6 py-3 text-left"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {jobs?.map((job: any) => (
+            {(jobs ?? []).map((job: any) => (
               <tr key={job.id} className="hover:bg-gray-50/50">
                 <td className="px-6 py-3 font-medium text-gray-800">{job.title}</td>
                 <td className="px-6 py-3 text-gray-600">
-                  {job.company_profiles?.company_name || "—"}
+                  {companyMap[job.company_id] || "—"}
                 </td>
                 <td className="px-6 py-3 text-gray-600">
                   {job.budget ? `${job.budget} kr` : "—"}
@@ -41,19 +52,21 @@ export default async function AdminJobsPage() {
                       ? "bg-green-100 text-green-700"
                       : "bg-gray-100 text-gray-600"
                   }`}>
-                    {job.status}
+                    {job.status === "open" ? "åben" : job.status === "closed" ? "lukket" : job.status}
                   </span>
                 </td>
                 <td className="px-6 py-3 text-gray-400 text-xs">
-                  {new Date(job.created_at).toLocaleDateString()}
+                  {job.deadline
+                    ? new Date(job.deadline).toLocaleString("da-DK", { dateStyle: "short", timeStyle: "short" })
+                    : "—"}
+                </td>
+                <td className="px-6 py-3 text-gray-400 text-xs">
+                  {new Date(job.created_at).toLocaleDateString("da-DK")}
                 </td>
                 <td className="px-6 py-3">
                   <form action={removeJob}>
                     <input type="hidden" name="jobId" value={job.id} />
-                    <button
-                      type="submit"
-                      className="text-xs text-red-500 hover:underline"
-                    >
+                    <button type="submit" className="text-xs text-red-500 hover:underline">
                       Slet
                     </button>
                   </form>
