@@ -64,6 +64,8 @@ function CreateTestUserModal({ onClose, onCreated }: { onClose: () => void; onCr
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [magicLink, setMagicLink] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const backdropRef = useRef<HTMLDivElement>(null);
 
   // Generate initial values on mount
@@ -79,6 +81,8 @@ function CreateTestUserModal({ onClose, onCreated }: { onClose: () => void; onCr
     setName(d.name);
     setEmail(d.email);
     setError(null);
+    setMagicLink(null);
+    setCopied(false);
   }
 
   function handleRegenerate() {
@@ -86,6 +90,18 @@ function CreateTestUserModal({ onClose, onCreated }: { onClose: () => void; onCr
     setName(d.name);
     setEmail(d.email);
     setError(null);
+    setMagicLink(null);
+    setCopied(false);
+  }
+
+  async function handleCopy(url: string) {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      // clipboard API unavailable — user can copy manually from the field
+    }
   }
 
   async function handleSubmit() {
@@ -97,9 +113,9 @@ function CreateTestUserModal({ onClose, onCreated }: { onClose: () => void; onCr
     if ("error" in result) {
       setError(result.error);
     } else {
-      window.open(result.url, "_blank", "noopener,noreferrer");
+      setMagicLink(result.url);
+      handleCopy(result.url);
       onCreated();
-      onClose();
     }
   }
 
@@ -185,6 +201,34 @@ function CreateTestUserModal({ onClose, onCreated }: { onClose: () => void; onCr
           </p>
         )}
 
+        {/* Magic link result */}
+        {magicLink && (
+          <div className="space-y-2.5 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+            <p className="text-sm font-semibold text-green-800">
+              Testbruger oprettet!
+            </p>
+            <p className="text-xs text-green-700">
+              Kopiér linket og åbn det i en privat/inkognito fane for at logge ind som denne bruger.
+            </p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                readOnly
+                value={magicLink}
+                onClick={(e) => (e.target as HTMLInputElement).select()}
+                className="flex-1 min-w-0 border border-green-300 rounded-lg px-2.5 py-1.5 text-xs bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 truncate"
+              />
+              <button
+                type="button"
+                onClick={() => handleCopy(magicLink)}
+                className="shrink-0 px-3 py-1.5 rounded-lg bg-green-700 text-white text-xs font-semibold hover:bg-green-800 transition-colors"
+              >
+                {copied ? "Kopieret ✓" : "Kopiér"}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Actions */}
         <div className="flex gap-3 pt-1">
           <button
@@ -192,16 +236,18 @@ function CreateTestUserModal({ onClose, onCreated }: { onClose: () => void; onCr
             onClick={onClose}
             className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
           >
-            Annuller
+            {magicLink ? "Luk" : "Annuller"}
           </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={loading || !name.trim() || !email.trim()}
-            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors"
-          >
-            {loading ? "Opretter…" : "Opret & log ind som"}
-          </button>
+          {!magicLink && (
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={loading || !name.trim() || !email.trim()}
+              className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors"
+            >
+              {loading ? "Opretter…" : "Opret & log ind som"}
+            </button>
+          )}
         </div>
       </div>
     </div>
