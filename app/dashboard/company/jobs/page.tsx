@@ -9,7 +9,7 @@ type Application = {
   status: string;
   cover_letter: string | null;
   created_at: string;
-  student_profiles: { full_name: string | null; skills: string[] | null; hourly_rate: number | null } | null;
+  student_id: string | null;
 };
 
 type Job = {
@@ -286,21 +286,7 @@ function AppRow({ app, onUpdate }: { app: Application; onUpdate: () => void }) {
               {new Date(app.created_at).toLocaleDateString("da-DK")}
             </span>
           </div>
-          <p className="font-semibold text-sm text-gray-800">
-            {app.student_profiles?.full_name || "Kandidat"}
-          </p>
-          {app.student_profiles?.hourly_rate && (
-            <p className="text-xs text-gray-500 mt-0.5">{app.student_profiles.hourly_rate} kr/t</p>
-          )}
-          {app.student_profiles?.skills?.length ? (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {app.student_profiles.skills.slice(0, 4).map((s) => (
-                <span key={s} className="bg-gray-100 text-gray-700 text-xs px-1.5 py-0.5 rounded font-medium">
-                  {s}
-                </span>
-              ))}
-            </div>
-          ) : null}
+          <p className="font-semibold text-sm text-gray-800">Kandidat</p>
           {app.cover_letter && (
             <details className="mt-2">
               <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-600">

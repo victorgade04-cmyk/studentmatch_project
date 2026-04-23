@@ -197,8 +197,7 @@ export async function getCompanyJobs(): Promise<{ data: any[] | null; error?: st
     const { data, error } = await admin
       .from("jobs")
       .select(`id, title, description, budget, status, requirements, deadline, job_type, location, created_at,
-        applications(id, status, cover_letter, created_at,
-          student_profiles(full_name, skills, hourly_rate))`)
+        applications(id, status, cover_letter, created_at, student_id)`)
       .eq("company_id", user.id)
       .order("created_at", { ascending: false });
 
