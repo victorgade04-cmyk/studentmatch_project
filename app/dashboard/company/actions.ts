@@ -173,13 +173,27 @@ export async function updateApplicationStatus(
   }
 }
 
-export async function getCompanyJobs(): Promise<{ data: any[] | null; error?: string }> {
+export async function getCompanyJobs(): Promise<{ data: any[] | null; error?: string; debug?: string }> {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { data: null, error: "Ikke logget ind." };
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error("[getCompanyJobs] No user session:", authError?.message);
+      return { data: null, error: "Ikke logget ind." };
+    }
+
+    console.log("[getCompanyJobs] user.id =", user.id, "| role =", user.user_metadata?.role);
 
     const admin = createAdminClient();
+
+    // Diagnostic: count all jobs in the DB and show their company_ids
+    const { data: allJobs } = await admin
+      .from("jobs")
+      .select("id, company_id, title, status");
+    console.log("[getCompanyJobs] all jobs in DB:", JSON.stringify(allJobs?.map(j => ({ id: j.id, company_id: j.company_id, title: j.title, status: j.status }))));
+    console.log("[getCompanyJobs] looking for company_id =", user.id);
+
     const { data, error } = await admin
       .from("jobs")
       .select(`id, title, description, budget, status, requirements, deadline, job_type, location, created_at,
@@ -188,9 +202,16 @@ export async function getCompanyJobs(): Promise<{ data: any[] | null; error?: st
       .eq("company_id", user.id)
       .order("created_at", { ascending: false });
 
-    if (error) return { data: null, error: error.message };
-    return { data: data ?? [] };
+    if (error) {
+      console.error("[getCompanyJobs] query error:", error.message);
+      return { data: null, error: error.message };
+    }
+
+    console.log("[getCompanyJobs] matched jobs:", data?.length ?? 0);
+    const debug = `user.id=${user.id} | total_jobs=${allJobs?.length ?? 0} | matched=${data?.length ?? 0}`;
+    return { data: data ?? [], debug };
   } catch (e: any) {
+    console.error("[getCompanyJobs] exception:", e.message);
     return { data: null, error: e.message };
   }
 }

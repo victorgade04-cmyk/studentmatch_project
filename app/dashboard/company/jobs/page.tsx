@@ -37,6 +37,8 @@ const STATUS_DA: Record<string, string> = {
 export default function CompanyJobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [fetchDebug, setFetchDebug] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
 
@@ -50,7 +52,9 @@ export default function CompanyJobsPage() {
   );
 
   const fetchJobs = () => {
-    getCompanyJobs().then(({ data }) => {
+    getCompanyJobs().then(({ data, error, debug }) => {
+      if (error) setFetchError(error);
+      if (debug) setFetchDebug(debug);
       setJobs((data as unknown as Job[]) || []);
       setLoading(false);
     });
@@ -167,6 +171,18 @@ export default function CompanyJobsPage() {
               {creating ? "Opretter…" : "Opret job"}
             </button>
           </form>
+        </div>
+      )}
+
+      {/* Debug / error banner */}
+      {fetchError && (
+        <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+          Fejl ved hentning af jobs: {fetchError}
+        </div>
+      )}
+      {fetchDebug && (
+        <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-2 text-xs text-yellow-800 font-mono">
+          {fetchDebug}
         </div>
       )}
 
