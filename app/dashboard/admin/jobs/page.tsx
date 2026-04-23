@@ -1,8 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { removeJob } from "../actions";
 
 export default async function AdminJobsPage() {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data: jobs } = await supabase
     .from("jobs")
     .select("id, title, description, budget, status, created_at, company_profiles(company_name)")
