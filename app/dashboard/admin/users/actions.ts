@@ -3,11 +3,18 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+function generatePassword(): string {
+  const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  let pw = "";
+  for (let i = 0; i < 12; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+  return pw;
+}
+
 export async function createTestUser(
   role: "student" | "company",
   name: string,
   email: string
-): Promise<{ url: string; userId: string } | { error: string }> {
+): Promise<{ email: string; password: string; userId: string } | { error: string }> {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -15,11 +22,12 @@ export async function createTestUser(
     if (callerRole !== "admin") return { error: "Kun admins kan bruge denne funktion." };
 
     const admin = createAdminClient();
+    const password = generatePassword();
 
-    // Create the auth user (email already confirmed so magic link works immediately)
     const { data: { user: newUser }, error: createErr } =
       await admin.auth.admin.createUser({
         email,
+        password,
         email_confirm: true,
         user_metadata: { role },
       });
@@ -28,49 +36,23 @@ export async function createTestUser(
       return { error: createErr?.message ?? "Kunne ikke oprette bruger." };
     }
 
-    // Sync to public users table (upsert in case a DB trigger already did it)
     await admin
       .from("users")
       .upsert({ id: newUser.id, email, role }, { onConflict: "id" });
 
-    // Create a minimal profile so the user can use the platform straight away
     if (role === "student") {
       await admin.from("student_profiles").upsert(
-        {
-          id: newUser.id,
-          full_name: name,
-          bio: "Testprofil oprettet via admin.",
-          skills: [],
-          package: "bronze",
-        },
+        { id: newUser.id, full_name: name, bio: "Testprofil oprettet via admin.", skills: [], package: "bronze" },
         { onConflict: "id" }
       );
     } else {
       await admin.from("company_profiles").upsert(
-        {
-          id: newUser.id,
-          company_name: name,
-          description: "Testprofil oprettet via admin.",
-          contact_email: email,
-          package: "startup",
-        },
+        { id: newUser.id, company_name: name, description: "Testprofil oprettet via admin.", contact_email: email, package: "startup" },
         { onConflict: "id" }
       );
     }
 
-    // Generate a magic link so the admin can log straight in as the test user
-    const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
-      type: "magiclink",
-      email,
-      options: { redirectTo: "https://studentmatch.dk/auth/callback?impersonated=true" },
-    });
-
-    if (linkErr || !linkData?.properties?.action_link) {
-      // User was created — return a partial success so the caller knows
-      return { error: "Bruger oprettet, men kunne ikke generere login-link. Find brugeren i listen." };
-    }
-
-    return { url: linkData.properties.action_link, userId: newUser.id };
+    return { email, password, userId: newUser.id };
   } catch (e: any) {
     return { error: e.message };
   }

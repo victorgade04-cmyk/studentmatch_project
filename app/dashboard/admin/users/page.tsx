@@ -64,8 +64,8 @@ function CreateTestUserModal({ onClose, onCreated }: { onClose: () => void; onCr
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [magicLink, setMagicLink] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
+  const [copiedField, setCopiedField] = useState<"email" | "password" | null>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
 
   // Generate initial values on mount
@@ -81,8 +81,8 @@ function CreateTestUserModal({ onClose, onCreated }: { onClose: () => void; onCr
     setName(d.name);
     setEmail(d.email);
     setError(null);
-    setMagicLink(null);
-    setCopied(false);
+    setCredentials(null);
+    setCopiedField(null);
   }
 
   function handleRegenerate() {
@@ -90,17 +90,17 @@ function CreateTestUserModal({ onClose, onCreated }: { onClose: () => void; onCr
     setName(d.name);
     setEmail(d.email);
     setError(null);
-    setMagicLink(null);
-    setCopied(false);
+    setCredentials(null);
+    setCopiedField(null);
   }
 
-  async function handleCopy(url: string) {
+  async function handleCopy(text: string, field: "email" | "password") {
     try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2500);
     } catch {
-      // clipboard API unavailable — user can copy manually from the field
+      // clipboard API unavailable — user can copy manually
     }
   }
 
@@ -113,8 +113,7 @@ function CreateTestUserModal({ onClose, onCreated }: { onClose: () => void; onCr
     if ("error" in result) {
       setError(result.error);
     } else {
-      setMagicLink(result.url);
-      handleCopy(result.url);
+      setCredentials({ email: result.email, password: result.password });
       onCreated();
     }
   }
@@ -201,31 +200,32 @@ function CreateTestUserModal({ onClose, onCreated }: { onClose: () => void; onCr
           </p>
         )}
 
-        {/* Magic link result */}
-        {magicLink && (
-          <div className="space-y-2.5 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
-            <p className="text-sm font-semibold text-green-800">
-              Testbruger oprettet!
-            </p>
+        {/* Credentials result */}
+        {credentials && (
+          <div className="space-y-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+            <p className="text-sm font-semibold text-green-800">Testbruger oprettet!</p>
             <p className="text-xs text-green-700">
-              Kopiér linket og åbn det i en privat/inkognito fane for at logge ind som denne bruger.
+              Åbn et inkognito vindue og log ind med disse oplysninger på{" "}
+              <span className="font-medium">studentmatch.dk/login</span>
             </p>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                readOnly
-                value={magicLink}
-                onClick={(e) => (e.target as HTMLInputElement).select()}
-                className="flex-1 min-w-0 border border-green-300 rounded-lg px-2.5 py-1.5 text-xs bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 truncate"
-              />
-              <button
-                type="button"
-                onClick={() => handleCopy(magicLink)}
-                className="shrink-0 px-3 py-1.5 rounded-lg bg-green-700 text-white text-xs font-semibold hover:bg-green-800 transition-colors"
-              >
-                {copied ? "Kopieret ✓" : "Kopiér"}
-              </button>
-            </div>
+            {(["email", "password"] as const).map((field) => (
+              <div key={field} className="flex gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={credentials[field]}
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                  className="flex-1 min-w-0 border border-green-300 rounded-lg px-2.5 py-1.5 text-xs bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleCopy(credentials[field], field)}
+                  className="shrink-0 px-3 py-1.5 rounded-lg bg-green-700 text-white text-xs font-semibold hover:bg-green-800 transition-colors"
+                >
+                  {copiedField === field ? "Kopieret ✓" : field === "email" ? "Kopiér email" : "Kopiér kode"}
+                </button>
+              </div>
+            ))}
           </div>
         )}
 
@@ -236,9 +236,9 @@ function CreateTestUserModal({ onClose, onCreated }: { onClose: () => void; onCr
             onClick={onClose}
             className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
           >
-            {magicLink ? "Luk" : "Annuller"}
+            {credentials ? "Luk" : "Annuller"}
           </button>
-          {!magicLink && (
+          {!credentials && (
             <button
               type="button"
               onClick={handleSubmit}
