@@ -73,6 +73,7 @@ export async function createJob(
       deadline,
       job_type: jobType,
       location,
+      status: "open",
     });
 
     if (error) return { error: error.message };

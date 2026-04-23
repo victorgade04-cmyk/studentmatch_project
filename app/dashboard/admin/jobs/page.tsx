@@ -10,18 +10,18 @@ export default async function AdminJobsPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">All Jobs</h1>
-      <p className="text-gray-500 text-sm mb-8">View and manage all job listings</p>
+      <h1 className="text-2xl font-bold text-gray-900 mb-1">Alle jobopslag</h1>
+      <p className="text-gray-500 text-sm mb-8">Se og administrér alle jobopslag</p>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
             <tr>
-              <th className="px-6 py-3 text-left">Title</th>
-              <th className="px-6 py-3 text-left">Company</th>
+              <th className="px-6 py-3 text-left">Titel</th>
+              <th className="px-6 py-3 text-left">Virksomhed</th>
               <th className="px-6 py-3 text-left">Budget</th>
               <th className="px-6 py-3 text-left">Status</th>
-              <th className="px-6 py-3 text-left">Posted</th>
+              <th className="px-6 py-3 text-left">Oprettet</th>
               <th className="px-6 py-3 text-left"></th>
             </tr>
           </thead>
@@ -54,7 +54,7 @@ export default async function AdminJobsPage() {
                       type="submit"
                       className="text-xs text-red-500 hover:underline"
                     >
-                      Delete
+                      Slet
                     </button>
                   </form>
                 </td>
@@ -63,7 +63,7 @@ export default async function AdminJobsPage() {
           </tbody>
         </table>
         {!jobs?.length && (
-          <p className="px-6 py-8 text-sm text-gray-400 text-center">No jobs found.</p>
+          <p className="px-6 py-8 text-sm text-gray-400 text-center">Ingen jobopslag fundet.</p>
         )}
       </div>
     </div>
