@@ -59,11 +59,10 @@ export async function createTestUser(
     }
 
     // Generate a magic link so the admin can log straight in as the test user
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
     const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
       type: "magiclink",
       email,
-      options: { redirectTo: `${siteUrl}/auth/callback?impersonated=true` },
+      options: { redirectTo: "https://studentmatch.dk/auth/callback?impersonated=true" },
     });
 
     if (linkErr || !linkData?.properties?.action_link) {
