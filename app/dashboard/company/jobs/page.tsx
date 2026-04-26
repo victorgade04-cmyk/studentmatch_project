@@ -37,8 +37,8 @@ type Job = {
 
 function toDateInput(deadline: string | null): string {
   if (!deadline) return "";
-  // Extract yyyy-MM-dd directly from any ISO-style string to avoid timezone shifts
-  const isoMatch = deadline.match(/^(\d{4}-\d{2}-\d{2})/);
+  // Extract yyyy-MM-dd anywhere in the string (handles ISO, timestamptz, etc.)
+  const isoMatch = deadline.match(/(\d{4}-\d{2}-\d{2})/);
   if (isoMatch) return isoMatch[1];
   // Non-ISO fallback: build manually with local Date methods
   const d = new Date(deadline);
@@ -89,9 +89,12 @@ function DeadlineLabel({ deadline }: { deadline: string | null }) {
   const expired = label === "Udløbet";
   const none = label === "Ingen frist sat";
   return (
-    <span className={`text-xs font-medium ${expired ? "text-red-500" : none ? "text-gray-300" : "text-blue-600"}`}>
-      {label}
-    </span>
+    <>
+      <span className="text-gray-200">·</span>
+      <span className={`text-xs font-medium ${expired ? "text-red-500" : none ? "text-gray-400" : "text-blue-600"}`}>
+        {label}
+      </span>
+    </>
   );
 }
 
@@ -374,7 +377,6 @@ export default function CompanyJobsPage() {
                         {job.budget ? ` · ${job.budget} kr` : ""}
                         {` · ${job.applications?.length ?? 0} ansøgninger`}
                       </span>
-                      <span className="text-gray-200">·</span>
                       <DeadlineLabel deadline={job.deadline} />
                     </div>
                   </div>
