@@ -38,7 +38,14 @@ type Job = {
 function toDatetimeLocal(deadline: string | null): string {
   if (!deadline) return "";
   if (/^\d{4}-\d{2}-\d{2}$/.test(deadline)) return `${deadline}T23:59`;
-  return deadline.slice(0, 16);
+  const d = new Date(deadline);
+  if (isNaN(d.getTime())) return "";
+  const yyyy = d.getFullYear();
+  const MM = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const HH = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${yyyy}-${MM}-${dd}T${HH}:${mm}`;
 }
 
 function calcDeadlineLabel(deadline: string | null): string {
