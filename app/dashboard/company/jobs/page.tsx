@@ -100,7 +100,19 @@ function DeadlineLabel({ deadline }: { deadline: string | null }) {
 
 // ── Shared form fields ────────────────────────────────────────────────────────
 
-function JobFormFields({ job }: { job?: Job }) {
+function JobFormFields({
+  job,
+  deadlineDate,
+  onDeadlineDateChange,
+  deadlineTime,
+  onDeadlineTimeChange,
+}: {
+  job?: Job;
+  deadlineDate?: string;
+  onDeadlineDateChange?: (v: string) => void;
+  deadlineTime?: string;
+  onDeadlineTimeChange?: (v: string) => void;
+}) {
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -173,7 +185,9 @@ function JobFormFields({ job }: { job?: Job }) {
               <input
                 name="deadline_date"
                 type="date"
-                defaultValue={toDateInput(job?.deadline ?? null)}
+                {...(onDeadlineDateChange
+                  ? { value: deadlineDate ?? "", onChange: (e) => onDeadlineDateChange(e.target.value) }
+                  : { defaultValue: toDateInput(job?.deadline ?? null) })}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
               />
             </div>
@@ -182,7 +196,9 @@ function JobFormFields({ job }: { job?: Job }) {
               <input
                 name="deadline_time"
                 type="time"
-                defaultValue={toTimeInput(job?.deadline ?? null)}
+                {...(onDeadlineTimeChange
+                  ? { value: deadlineTime ?? "", onChange: (e) => onDeadlineTimeChange(e.target.value) }
+                  : { defaultValue: toTimeInput(job?.deadline ?? null) })}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
               />
             </div>
@@ -206,6 +222,11 @@ function JobFormFields({ job }: { job?: Job }) {
 // ── Edit modal (portalled to document.body to escape layout overflow) ─────────
 
 function EditJobModal({ job, onClose, onSaved }: { job: Job; onClose: () => void; onSaved: () => void }) {
+  console.log("deadline raw:", job?.deadline);
+
+  const [deadlineDate, setDeadlineDate] = useState(() => toDateInput(job?.deadline ?? null));
+  const [deadlineTime, setDeadlineTime] = useState(() => toTimeInput(job?.deadline ?? null));
+
   const backdropRef = useRef<HTMLDivElement>(null);
   const [state, action, saving] = useActionState(
     async (prev: any, fd: FormData) => {
@@ -239,7 +260,13 @@ function EditJobModal({ job, onClose, onSaved }: { job: Job; onClose: () => void
 
         <form action={action} className="space-y-4">
           <input type="hidden" name="jobId" value={job.id} />
-          <JobFormFields job={job} />
+          <JobFormFields
+            job={job}
+            deadlineDate={deadlineDate}
+            onDeadlineDateChange={setDeadlineDate}
+            deadlineTime={deadlineTime}
+            onDeadlineTimeChange={setDeadlineTime}
+          />
 
           {state?.error && (
             <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
