@@ -37,28 +37,14 @@ type Job = {
 
 function toDateInput(deadline: string | null): string {
   if (!deadline) return "";
-  // Extract yyyy-MM-dd anywhere in the string (handles ISO, timestamptz, etc.)
-  const isoMatch = deadline.match(/(\d{4}-\d{2}-\d{2})/);
-  if (isoMatch) return isoMatch[1];
-  // Non-ISO fallback: build manually with local Date methods
-  const d = new Date(deadline);
-  if (isNaN(d.getTime())) return "";
-  const yyyy = d.getFullYear();
-  const MM = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${MM}-${dd}`;
+  const match = deadline.match(/(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : "";
 }
 
 function toTimeInput(deadline: string | null): string {
   if (!deadline) return "";
-  // Match HH and mm separately, tolerating both ':' and '.' as separator
-  const isoMatch = deadline.match(/T(\d{2})[:\.](\d{2})/);
-  if (isoMatch) return `${isoMatch[1]}:${isoMatch[2]}`;
-  // Date-only string — default to end of day
-  if (/^\d{4}-\d{2}-\d{2}$/.test(deadline)) return "23:59";
-  const d = new Date(deadline);
-  if (isNaN(d.getTime())) return "";
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  const match = deadline.match(/T(\d{2})[:\.](\d{2})/);
+  return match ? `${match[1]}:${match[2]}` : "";
 }
 
 function calcDeadlineLabel(deadline: string | null): string {
