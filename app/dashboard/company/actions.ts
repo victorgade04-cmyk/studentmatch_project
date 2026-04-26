@@ -59,8 +59,9 @@ export async function createJob(
     const budgetRaw = formData.get("budget") as string;
     const budget = budgetRaw ? parseFloat(budgetRaw) : null;
 
-    const deadlineRaw = formData.get("deadline") as string;
-    const deadline = deadlineRaw || null;
+    const deadlineDate = (formData.get("deadline_date") as string) || "";
+    const deadlineTime = (formData.get("deadline_time") as string) || "23:59";
+    const deadline = deadlineDate ? `${deadlineDate}T${deadlineTime}` : null;
 
     const jobType = (formData.get("job_type") as string) || null;
     const location = (formData.get("location") as string).trim() || null;
@@ -106,8 +107,9 @@ export async function updateJob(
     const budgetRaw = formData.get("budget") as string;
     const budget = budgetRaw ? parseFloat(budgetRaw) : null;
 
-    const deadlineRaw = formData.get("deadline") as string;
-    const deadline = deadlineRaw || null;
+    const deadlineDate = (formData.get("deadline_date") as string) || "";
+    const deadlineTime = (formData.get("deadline_time") as string) || "23:59";
+    const deadline = deadlineDate ? `${deadlineDate}T${deadlineTime}` : null;
 
     const jobType = (formData.get("job_type") as string) || null;
     const location = (formData.get("location") as string).trim() || null;
