@@ -208,10 +208,16 @@ function JobFormFields({
 // ── Edit modal (portalled to document.body to escape layout overflow) ─────────
 
 function EditJobModal({ job, onClose, onSaved }: { job: Job; onClose: () => void; onSaved: () => void }) {
-  console.log("deadline raw:", job?.deadline);
-
-  const [deadlineDate, setDeadlineDate] = useState(() => toDateInput(job?.deadline ?? null));
-  const [deadlineTime, setDeadlineTime] = useState(() => toTimeInput(job?.deadline ?? null));
+  const [deadlineDate, setDeadlineDate] = useState(() => {
+    if (job?.deadline) return toDateInput(job.deadline);
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    return d.toISOString().slice(0, 10);
+  });
+  const [deadlineTime, setDeadlineTime] = useState(() => {
+    if (job?.deadline) return toTimeInput(job.deadline);
+    return "23:59";
+  });
 
   const backdropRef = useRef<HTMLDivElement>(null);
   const [state, action, saving] = useActionState(
