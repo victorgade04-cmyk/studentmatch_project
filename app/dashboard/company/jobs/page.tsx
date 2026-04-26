@@ -51,9 +51,9 @@ function toDateInput(deadline: string | null): string {
 
 function toTimeInput(deadline: string | null): string {
   if (!deadline) return "";
-  // Extract HH:mm directly from ISO string if present
-  const isoMatch = deadline.match(/T(\d{2}:\d{2})/);
-  if (isoMatch) return isoMatch[1];
+  // Match HH and mm separately, tolerating both ':' and '.' as separator
+  const isoMatch = deadline.match(/T(\d{2})[:\.](\d{2})/);
+  if (isoMatch) return `${isoMatch[1]}:${isoMatch[2]}`;
   // Date-only string — default to end of day
   if (/^\d{4}-\d{2}-\d{2}$/.test(deadline)) return "23:59";
   const d = new Date(deadline);
