@@ -170,22 +170,26 @@ function JobFormFields({
               <label className="block text-xs text-gray-400 mb-1">Dato</label>
               <input
                 name="deadline_date"
-                type="date"
+                type="text"
+                placeholder="YYYY-MM-DD"
+                pattern="\d{4}-\d{2}-\d{2}"
                 {...(onDeadlineDateChange
                   ? { value: deadlineDate ?? "", onChange: (e) => onDeadlineDateChange(e.target.value) }
                   : { defaultValue: toDateInput(job?.deadline ?? null) })}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 font-mono"
               />
             </div>
             <div className="w-28">
               <label className="block text-xs text-gray-400 mb-1">Tidspunkt</label>
               <input
                 name="deadline_time"
-                type="time"
+                type="text"
+                placeholder="HH:MM"
+                pattern="\d{2}:\d{2}"
                 {...(onDeadlineTimeChange
                   ? { value: deadlineTime ?? "", onChange: (e) => onDeadlineTimeChange(e.target.value) }
                   : { defaultValue: toTimeInput(job?.deadline ?? null) })}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 font-mono"
               />
             </div>
           </div>
@@ -208,16 +212,13 @@ function JobFormFields({
 // ── Edit modal (portalled to document.body to escape layout overflow) ─────────
 
 function EditJobModal({ job, onClose, onSaved }: { job: Job; onClose: () => void; onSaved: () => void }) {
-  const [deadlineDate, setDeadlineDate] = useState(() => {
-    if (job?.deadline) return toDateInput(job.deadline);
-    const d = new Date();
-    d.setDate(d.getDate() + 7);
-    return d.toISOString().slice(0, 10);
-  });
-  const [deadlineTime, setDeadlineTime] = useState(() => {
-    if (job?.deadline) return toTimeInput(job.deadline);
-    return "23:59";
-  });
+  const [deadlineDate, setDeadlineDate] = useState(() =>
+    job?.deadline ? toDateInput(job.deadline) : ""
+  );
+  const [deadlineTime, setDeadlineTime] = useState(() =>
+    job?.deadline ? toTimeInput(job.deadline) : ""
+  );
+  const [deadlineError, setDeadlineError] = useState<string | null>(null);
 
   const backdropRef = useRef<HTMLDivElement>(null);
   const [state, action, saving] = useActionState(
@@ -228,6 +229,19 @@ function EditJobModal({ job, onClose, onSaved }: { job: Job; onClose: () => void
     },
     {}
   );
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const dateOk = deadlineDate === "" || /^\d{4}-\d{2}-\d{2}$/.test(deadlineDate);
+    const timeOk = deadlineTime === "" || /^\d{2}:\d{2}$/.test(deadlineTime);
+    if (!dateOk || !timeOk) {
+      e.preventDefault();
+      setDeadlineError(
+        !dateOk ? "Dato skal være i formatet YYYY-MM-DD" : "Tidspunkt skal være i formatet HH:MM"
+      );
+    } else {
+      setDeadlineError(null);
+    }
+  }
 
   const content = (
     <div
@@ -250,16 +264,21 @@ function EditJobModal({ job, onClose, onSaved }: { job: Job; onClose: () => void
           </button>
         </div>
 
-        <form action={action} className="space-y-4">
+        <form action={action} onSubmit={handleSubmit} className="space-y-4">
           <input type="hidden" name="jobId" value={job.id} />
           <JobFormFields
             job={job}
             deadlineDate={deadlineDate}
-            onDeadlineDateChange={setDeadlineDate}
+            onDeadlineDateChange={(v) => { setDeadlineDate(v); setDeadlineError(null); }}
             deadlineTime={deadlineTime}
-            onDeadlineTimeChange={setDeadlineTime}
+            onDeadlineTimeChange={(v) => { setDeadlineTime(v); setDeadlineError(null); }}
           />
 
+          {deadlineError && (
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+              {deadlineError}
+            </p>
+          )}
           {state?.error && (
             <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
               {state.error}
