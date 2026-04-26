@@ -57,3 +57,27 @@ export async function createTestUser(
     return { error: e.message };
   }
 }
+
+export async function resetUserPassword(
+  userId: string
+): Promise<{ email: string; password: string } | { error: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const callerRole = user?.user_metadata?.role ?? user?.app_metadata?.role;
+    if (callerRole !== "admin") return { error: "Kun admins kan bruge denne funktion." };
+
+    const admin = createAdminClient();
+    const password = generatePassword();
+
+    const { data: authUser, error: fetchErr } = await admin.auth.admin.getUserById(userId);
+    if (fetchErr || !authUser.user) return { error: fetchErr?.message ?? "Bruger ikke fundet." };
+
+    const { error: updateErr } = await admin.auth.admin.updateUserById(userId, { password });
+    if (updateErr) return { error: updateErr.message };
+
+    return { email: authUser.user.email ?? "", password };
+  } catch (e: any) {
+    return { error: e.message };
+  }
+}

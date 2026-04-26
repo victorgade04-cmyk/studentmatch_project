@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { setHourlyRate, setStudentPackage, updateUserRole } from "../actions";
-import { createTestUser } from "./actions";
+import { createTestUser, resetUserPassword } from "./actions";
 import { PACKAGE_BADGE, PackageId } from "@/lib/packages";
 import { createClient } from "@/lib/supabase/client";
 
@@ -254,6 +254,229 @@ function CreateTestUserModal({ onClose, onCreated }: { onClose: () => void; onCr
   );
 }
 
+// ── Types & helpers for quick-login ──────────────────────────────────────────
+
+type SavedCredential = {
+  email: string;
+  password: string;
+  role: "student" | "company";
+  displayName: string;
+  savedAt: number;
+};
+
+const LS_KEY = "admin_quick_logins";
+
+function loadSaved(): SavedCredential[] {
+  try {
+    return JSON.parse(localStorage.getItem(LS_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
+function pushSaved(cred: SavedCredential) {
+  const existing = loadSaved().filter((c) => c.email !== cred.email);
+  const next = [cred, ...existing].slice(0, 3);
+  localStorage.setItem(LS_KEY, JSON.stringify(next));
+}
+
+// ── CredentialPopup ────────────────────────────────────────────────────────────
+
+function CredentialPopup({
+  email,
+  password,
+  onClose,
+}: {
+  email: string;
+  password: string;
+  onClose: () => void;
+}) {
+  const [copiedField, setCopiedField] = useState<"email" | "password" | null>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+
+  async function copy(text: string, field: "email" | "password") {
+    try { await navigator.clipboard.writeText(text); } catch {}
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2500);
+  }
+
+  return (
+    <div
+      ref={backdropRef}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      onClick={(e) => { if (e.target === backdropRef.current) onClose(); }}
+    >
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-black text-gray-900">Log ind som bruger</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl leading-none">✕</button>
+        </div>
+
+        <p className="text-xs text-gray-500">
+          Nyt midlertidigt kodeord genereret. Åbn et inkognito-vindue og log ind på{" "}
+          <span className="font-medium">studentmatch.dk/login</span>
+        </p>
+
+        <div className="space-y-2 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+          {(["email", "password"] as const).map((field) => (
+            <div key={field} className="flex gap-2">
+              <input
+                readOnly
+                value={field === "email" ? email : password}
+                onClick={(e) => (e.target as HTMLInputElement).select()}
+                className="flex-1 min-w-0 border border-blue-200 rounded-lg px-2.5 py-1.5 text-xs bg-white font-mono text-gray-700 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => copy(field === "email" ? email : password, field)}
+                className="shrink-0 px-3 py-1.5 rounded-lg bg-blue-700 text-white text-xs font-semibold hover:bg-blue-800 transition-colors"
+              >
+                {copiedField === field ? "Kopieret ✓" : field === "email" ? "Kopiér email" : "Kopiér kode"}
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={onClose}
+          className="w-full py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+        >
+          Luk
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── LoginAsButton ─────────────────────────────────────────────────────────────
+
+function LoginAsButton({ user }: { user: User }) {
+  const [loading, setLoading] = useState(false);
+  const [creds, setCreds] = useState<{ email: string; password: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleClick() {
+    setLoading(true);
+    setError(null);
+    const result = await resetUserPassword(user.id);
+    setLoading(false);
+    if ("error" in result) {
+      setError(result.error);
+      return;
+    }
+    setCreds(result);
+    pushSaved({
+      email: result.email,
+      password: result.password,
+      role: user.role as "student" | "company",
+      displayName: user.student_profiles?.full_name ?? user.email,
+      savedAt: Date.now(),
+    });
+  }
+
+  return (
+    <>
+      {creds && (
+        <CredentialPopup
+          email={creds.email}
+          password={creds.password}
+          onClose={() => setCreds(null)}
+        />
+      )}
+      <div className="flex flex-col items-end gap-0.5">
+        <button
+          type="button"
+          onClick={handleClick}
+          disabled={loading}
+          className="text-xs px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 disabled:opacity-50 transition-colors font-medium whitespace-nowrap"
+        >
+          {loading ? "…" : "Log ind som"}
+        </button>
+        {error && <span className="text-xs text-red-500 max-w-[120px] text-right leading-tight">{error}</span>}
+      </div>
+    </>
+  );
+}
+
+// ── QuickAccessPanel ──────────────────────────────────────────────────────────
+
+function QuickAccessPanel() {
+  const [open, setOpen] = useState(false);
+  const [saved, setSaved] = useState<SavedCredential[]>([]);
+  const [copiedIdx, setCopiedIdx] = useState<string | null>(null);
+
+  useEffect(() => { setSaved(loadSaved()); }, [open]);
+
+  async function copy(text: string, key: string) {
+    try { await navigator.clipboard.writeText(text); } catch {}
+    setCopiedIdx(key);
+    setTimeout(() => setCopiedIdx(null), 2000);
+  }
+
+  const roleLabel = (r: string) => r === "student" ? "Kandidat" : "Virksomhed";
+
+  return (
+    <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
+      {open && (
+        <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-72 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+            <span className="text-sm font-black text-gray-900">Hurtig login</span>
+            <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-700 text-lg leading-none">✕</button>
+          </div>
+          {saved.length === 0 ? (
+            <p className="px-4 py-5 text-xs text-gray-400 text-center">Ingen gemte logins endnu.<br />Klik "Log ind som" på en bruger.</p>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {saved.map((c, i) => (
+                <div key={c.email} className="px-4 py-3 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-gray-800 truncate">{c.displayName}</p>
+                      <p className="text-xs text-gray-400 truncate">{c.email}</p>
+                      <span className="inline-block text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full mt-0.5">
+                        {roleLabel(c.role)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => copy(c.email, `${i}-email`)}
+                      className="flex-1 text-xs py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-gray-600"
+                    >
+                      {copiedIdx === `${i}-email` ? "✓ Email" : "Kopiér email"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => copy(c.password, `${i}-pw`)}
+                      className="flex-1 text-xs py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-gray-600"
+                    >
+                      {copiedIdx === `${i}-pw` ? "✓ Kode" : "Kopiér kode"}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold shadow-lg hover:bg-gray-700 transition-colors"
+      >
+        Hurtig login
+        {saved.length > 0 && (
+          <span className="bg-blue-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full leading-none">
+            {saved.length}
+          </span>
+        )}
+      </button>
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function AdminUsersPage() {
@@ -285,6 +508,7 @@ export default function AdminUsersPage() {
           onCreated={fetchUsers}
         />
       )}
+      <QuickAccessPanel />
 
       <div className="p-8">
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
@@ -312,6 +536,7 @@ export default function AdminUsersPage() {
                 <th className="px-6 py-3 text-left">Timepris (kr/t)</th>
                 <th className="px-6 py-3 text-left">Pakke</th>
                 <th className="px-6 py-3 text-left">Oprettet</th>
+                <th className="px-6 py-3"></th>
                 <th className="px-6 py-3"></th>
               </tr>
             </thead>
@@ -442,6 +667,11 @@ function UserRow({ user, onUpdated }: { user: User; onUpdated: () => void }) {
         >
           Se profil →
         </Link>
+      </td>
+      <td className="px-6 py-3">
+        {(user.role === "student" || user.role === "company") && (
+          <LoginAsButton user={user} />
+        )}
       </td>
     </tr>
   );
