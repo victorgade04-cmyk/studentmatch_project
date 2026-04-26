@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { RefObject, useActionState, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
@@ -88,16 +88,12 @@ function DeadlineLabel({ deadline }: { deadline: string | null }) {
 
 function JobFormFields({
   job,
-  deadlineDate,
-  onDeadlineDateChange,
-  deadlineTime,
-  onDeadlineTimeChange,
+  dateRef,
+  timeRef,
 }: {
   job?: Job;
-  deadlineDate?: string;
-  onDeadlineDateChange?: (v: string) => void;
-  deadlineTime?: string;
-  onDeadlineTimeChange?: (v: string) => void;
+  dateRef?: RefObject<HTMLInputElement>;
+  timeRef?: RefObject<HTMLInputElement>;
 }) {
   return (
     <>
@@ -170,26 +166,20 @@ function JobFormFields({
               <label className="block text-xs text-gray-400 mb-1">Dato</label>
               <input
                 name="deadline_date"
-                type="text"
-                placeholder="YYYY-MM-DD"
-                pattern="\d{4}-\d{2}-\d{2}"
-                {...(onDeadlineDateChange
-                  ? { value: deadlineDate ?? "", onChange: (e) => onDeadlineDateChange(e.target.value) }
-                  : { defaultValue: toDateInput(job?.deadline ?? null) })}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 font-mono"
+                type="date"
+                ref={dateRef}
+                defaultValue={dateRef ? undefined : toDateInput(job?.deadline ?? null)}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
               />
             </div>
             <div className="w-28">
               <label className="block text-xs text-gray-400 mb-1">Tidspunkt</label>
               <input
                 name="deadline_time"
-                type="text"
-                placeholder="HH:MM"
-                pattern="\d{2}:\d{2}"
-                {...(onDeadlineTimeChange
-                  ? { value: deadlineTime ?? "", onChange: (e) => onDeadlineTimeChange(e.target.value) }
-                  : { defaultValue: toTimeInput(job?.deadline ?? null) })}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 font-mono"
+                type="time"
+                ref={timeRef}
+                defaultValue={timeRef ? undefined : toTimeInput(job?.deadline ?? null)}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
               />
             </div>
           </div>
@@ -212,13 +202,18 @@ function JobFormFields({
 // ── Edit modal (portalled to document.body to escape layout overflow) ─────────
 
 function EditJobModal({ job, onClose, onSaved }: { job: Job; onClose: () => void; onSaved: () => void }) {
-  const [deadlineDate, setDeadlineDate] = useState(() =>
-    job?.deadline ? toDateInput(job.deadline) : ""
-  );
-  const [deadlineTime, setDeadlineTime] = useState(() =>
-    job?.deadline ? toTimeInput(job.deadline) : ""
-  );
+  const dateRef = useRef<HTMLInputElement>(null);
+  const timeRef = useRef<HTMLInputElement>(null);
   const [deadlineError, setDeadlineError] = useState<string | null>(null);
+
+  // Set values directly on DOM elements after mount, bypassing React's rendering
+  // which would apply locale formatting on Safari/Mac
+  useEffect(() => {
+    if (dateRef.current) dateRef.current.value = job?.deadline ? toDateInput(job.deadline) : "";
+  }, []);
+  useEffect(() => {
+    if (timeRef.current) timeRef.current.value = job?.deadline ? toTimeInput(job.deadline) : "";
+  }, []);
 
   const backdropRef = useRef<HTMLDivElement>(null);
   const [state, action, saving] = useActionState(
@@ -231,8 +226,10 @@ function EditJobModal({ job, onClose, onSaved }: { job: Job; onClose: () => void
   );
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    const dateOk = deadlineDate === "" || /^\d{4}-\d{2}-\d{2}$/.test(deadlineDate);
-    const timeOk = deadlineTime === "" || /^\d{2}:\d{2}$/.test(deadlineTime);
+    const dateVal = dateRef.current?.value ?? "";
+    const timeVal = timeRef.current?.value ?? "";
+    const dateOk = dateVal === "" || /^\d{4}-\d{2}-\d{2}$/.test(dateVal);
+    const timeOk = timeVal === "" || /^\d{2}:\d{2}$/.test(timeVal);
     if (!dateOk || !timeOk) {
       e.preventDefault();
       setDeadlineError(
@@ -266,13 +263,7 @@ function EditJobModal({ job, onClose, onSaved }: { job: Job; onClose: () => void
 
         <form action={action} onSubmit={handleSubmit} className="space-y-4">
           <input type="hidden" name="jobId" value={job.id} />
-          <JobFormFields
-            job={job}
-            deadlineDate={deadlineDate}
-            onDeadlineDateChange={(v) => { setDeadlineDate(v); setDeadlineError(null); }}
-            deadlineTime={deadlineTime}
-            onDeadlineTimeChange={(v) => { setDeadlineTime(v); setDeadlineError(null); }}
-          />
+          <JobFormFields job={job} dateRef={dateRef} timeRef={timeRef} />
 
           {deadlineError && (
             <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
