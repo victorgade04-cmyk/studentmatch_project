@@ -108,16 +108,23 @@ function DeadlinePicker({ initialDeadline }: { initialDeadline: string | null })
   }
 
   const todayMidnight = (() => { const d = new Date(); d.setHours(0,0,0,0); return d; })();
-  const initDate = parseDateStr(toDateInput(initialDeadline));
+  const now = new Date();
+
+  const initDate = initialDeadline
+    ? parseDateStr(toDateInput(initialDeadline))
+    : new Date(todayMidnight); // default to today
+
   const initTimeMatch = initialDeadline?.match(/T(\d{2})[:\.](\d{2})/);
-  const initHour = initTimeMatch ? parseInt(initTimeMatch[1]) : 23;
-  const rawMin = initTimeMatch ? parseInt(initTimeMatch[2]) : 59;
+  const rawMin = initTimeMatch ? parseInt(initTimeMatch[2]) : now.getMinutes();
   const initMinute = MINUTES.reduce((c, v) => Math.abs(v - rawMin) < Math.abs(c - rawMin) ? v : c);
+  const initHour = initTimeMatch
+    ? parseInt(initTimeMatch[1])
+    : now.getHours() + (now.getMinutes() >= 53 ? 1 : 0); // bump hour if rounding up to :00
 
   const [selected, setSelected] = useState<Date | null>(initDate);
   const [viewYear, setViewYear] = useState(initDate?.getFullYear() ?? todayMidnight.getFullYear());
   const [viewMonth, setViewMonth] = useState(initDate?.getMonth() ?? todayMidnight.getMonth());
-  const [hour, setHour] = useState(initHour);
+  const [hour, setHour] = useState(initHour % 24);
   const [minute, setMinute] = useState(initMinute);
 
   function prevMonth() {
