@@ -1,6 +1,6 @@
 "use client";
 
-import { RefObject, useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
@@ -32,6 +32,19 @@ type Job = {
   created_at: string;
   applications: Application[];
 };
+
+// ── Danish locale constants ────────────────────────────────────────────────────
+
+const MONTHS_DA = [
+  "januar","februar","marts","april","maj","juni",
+  "juli","august","september","oktober","november","december",
+];
+const MONTHS_DA_CAP = [
+  "Januar","Februar","Marts","April","Maj","Juni",
+  "Juli","August","September","Oktober","November","December",
+];
+const DAYS_SHORT = ["Ma","Ti","On","To","Fr","Lø","Sø"]; // Monday-first
+const DAYS_LONG = ["Søndag","Mandag","Tirsdag","Onsdag","Torsdag","Fredag","Lørdag"]; // Sun=0
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -68,9 +81,7 @@ function calcDeadlineLabel(deadline: string | null): string {
 // Rendered client-only to avoid SSR/hydration mismatch from new Date()
 function DeadlineLabel({ deadline }: { deadline: string | null }) {
   const [label, setLabel] = useState<string | null>(null);
-  useEffect(() => {
-    setLabel(calcDeadlineLabel(deadline));
-  }, [deadline]);
+  useEffect(() => { setLabel(calcDeadlineLabel(deadline)); }, [deadline]);
   if (label === null) return null;
   const expired = label === "Udløbet";
   const none = label === "Ingen frist sat";
@@ -84,17 +95,178 @@ function DeadlineLabel({ deadline }: { deadline: string | null }) {
   );
 }
 
+// ── DeadlinePicker ────────────────────────────────────────────────────────────
+
+function DeadlinePicker({ initialDeadline }: { initialDeadline: string | null }) {
+  const MINUTES = [0, 15, 30, 45];
+
+  function parseDateStr(dl: string | null): Date | null {
+    if (!dl) return null;
+    const m = dl.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return null;
+    return new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3]));
+  }
+
+  const todayMidnight = (() => { const d = new Date(); d.setHours(0,0,0,0); return d; })();
+  const initDate = parseDateStr(toDateInput(initialDeadline));
+  const initTimeMatch = initialDeadline?.match(/T(\d{2})[:\.](\d{2})/);
+  const initHour = initTimeMatch ? parseInt(initTimeMatch[1]) : 23;
+  const rawMin = initTimeMatch ? parseInt(initTimeMatch[2]) : 59;
+  const initMinute = MINUTES.reduce((c, v) => Math.abs(v - rawMin) < Math.abs(c - rawMin) ? v : c);
+
+  const [selected, setSelected] = useState<Date | null>(initDate);
+  const [viewYear, setViewYear] = useState(initDate?.getFullYear() ?? todayMidnight.getFullYear());
+  const [viewMonth, setViewMonth] = useState(initDate?.getMonth() ?? todayMidnight.getMonth());
+  const [hour, setHour] = useState(initHour);
+  const [minute, setMinute] = useState(initMinute);
+
+  function prevMonth() {
+    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
+    else setViewMonth(m => m - 1);
+  }
+  function nextMonth() {
+    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
+    else setViewMonth(m => m + 1);
+  }
+
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const firstDayMon = (new Date(viewYear, viewMonth, 1).getDay() + 6) % 7;
+  const cells: (number | null)[] = [
+    ...Array(firstDayMon).fill(null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ];
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  const dateStr = selected
+    ? `${selected.getFullYear()}-${String(selected.getMonth() + 1).padStart(2,"0")}-${String(selected.getDate()).padStart(2,"0")}`
+    : "";
+  const timeStr = dateStr
+    ? `${String(hour).padStart(2,"0")}:${String(minute).padStart(2,"0")}`
+    : "";
+
+  const displayText = selected
+    ? `${DAYS_LONG[selected.getDay()]} d. ${selected.getDate()}. ${MONTHS_DA[selected.getMonth()]} ${selected.getFullYear()} kl. ${String(hour).padStart(2,"0")}:${String(minute).padStart(2,"0")}`
+    : "Ingen frist sat";
+
+  return (
+    <div className="space-y-3">
+      {/* Hidden inputs consumed by the parent form's FormData */}
+      <input type="hidden" name="deadline_date" value={dateStr} />
+      <input type="hidden" name="deadline_time" value={timeStr} />
+
+      <p className="block text-xs font-medium text-gray-700">
+        Ansøgningsfrist <span className="text-gray-400 font-normal">(valgfrit)</span>
+      </p>
+
+      {/* Selected date summary */}
+      <div className="flex items-center justify-between min-h-[1.5rem]">
+        <p className={`text-sm font-medium ${selected ? "text-gray-900" : "text-gray-400"}`}>
+          {displayText}
+        </p>
+        {selected && (
+          <button
+            type="button"
+            onClick={() => setSelected(null)}
+            className="text-xs text-gray-400 hover:text-gray-700 transition-colors shrink-0 ml-2"
+          >
+            Fjern frist
+          </button>
+        )}
+      </div>
+
+      {/* Calendar */}
+      <div className="border border-gray-200 rounded-xl overflow-hidden select-none">
+        {/* Month navigation */}
+        <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-100">
+          <button
+            type="button"
+            onClick={prevMonth}
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition-colors text-lg leading-none"
+          >
+            ‹
+          </button>
+          <span className="text-sm font-semibold text-gray-900">
+            {MONTHS_DA_CAP[viewMonth]} {viewYear}
+          </span>
+          <button
+            type="button"
+            onClick={nextMonth}
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition-colors text-lg leading-none"
+          >
+            ›
+          </button>
+        </div>
+
+        {/* Weekday headers */}
+        <div className="grid grid-cols-7 border-b border-gray-100 bg-gray-50">
+          {DAYS_SHORT.map(d => (
+            <div key={d} className="text-center text-xs font-medium text-gray-400 py-1.5">
+              {d}
+            </div>
+          ))}
+        </div>
+
+        {/* Day cells */}
+        <div className="grid grid-cols-7 gap-0.5 p-2">
+          {cells.map((day, i) => {
+            if (!day) return <div key={i} />;
+            const cellDate = new Date(viewYear, viewMonth, day);
+            const isPast = cellDate < todayMidnight;
+            const isToday = cellDate.getTime() === todayMidnight.getTime();
+            const isSel = selected !== null && cellDate.getTime() === selected.getTime();
+            return (
+              <button
+                key={i}
+                type="button"
+                disabled={isPast}
+                onClick={() => setSelected(cellDate)}
+                className={[
+                  "w-full aspect-square flex items-center justify-center rounded-lg text-sm transition-colors",
+                  isPast ? "text-gray-300 cursor-not-allowed" : "cursor-pointer",
+                  isSel ? "bg-gray-900 text-white font-semibold" : "",
+                  isToday && !isSel ? "ring-2 ring-gray-400 font-semibold" : "",
+                  !isPast && !isSel ? "hover:bg-gray-100" : "",
+                ].join(" ")}
+              >
+                {day}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Time picker — only shown once a date is chosen */}
+      {selected && (
+        <div className="flex items-center gap-2.5">
+          <span className="text-xs font-medium text-gray-700">Tidspunkt:</span>
+          <select
+            value={hour}
+            onChange={(e) => setHour(parseInt(e.target.value))}
+            className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+          >
+            {Array.from({ length: 24 }, (_, h) => (
+              <option key={h} value={h}>{String(h).padStart(2,"0")}</option>
+            ))}
+          </select>
+          <span className="text-gray-400 font-semibold">:</span>
+          <select
+            value={minute}
+            onChange={(e) => setMinute(parseInt(e.target.value))}
+            className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+          >
+            {MINUTES.map(m => (
+              <option key={m} value={m}>{String(m).padStart(2,"0")}</option>
+            ))}
+          </select>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Shared form fields ────────────────────────────────────────────────────────
 
-function JobFormFields({
-  job,
-  dateRef,
-  timeRef,
-}: {
-  job?: Job;
-  dateRef?: RefObject<HTMLInputElement>;
-  timeRef?: RefObject<HTMLInputElement>;
-}) {
+function JobFormFields({ job, hideDeadline }: { job?: Job; hideDeadline?: boolean }) {
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -158,33 +330,7 @@ function JobFormFields({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <p className="block text-xs font-medium text-gray-700 mb-1">Ansøgningsfrist <span className="text-gray-400 font-normal">(valgfrit)</span></p>
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <label className="block text-xs text-gray-400 mb-1">Dato</label>
-              <input
-                name="deadline_date"
-                type="date"
-                ref={dateRef}
-                defaultValue={dateRef ? undefined : toDateInput(job?.deadline ?? null)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-              />
-            </div>
-            <div className="w-28">
-              <label className="block text-xs text-gray-400 mb-1">Tidspunkt</label>
-              <input
-                name="deadline_time"
-                type="time"
-                ref={timeRef}
-                defaultValue={timeRef ? undefined : toTimeInput(job?.deadline ?? null)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-              />
-            </div>
-          </div>
-          <p className="text-xs text-gray-400 mt-1">Ansøgere kan ikke søge efter dette tidspunkt.</p>
-        </div>
+      {hideDeadline ? (
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Krav (kommasepareret)</label>
           <input
@@ -194,7 +340,45 @@ function JobFormFields({
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
           />
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <p className="block text-xs font-medium text-gray-700 mb-1">
+              Ansøgningsfrist <span className="text-gray-400 font-normal">(valgfrit)</span>
+            </p>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="block text-xs text-gray-400 mb-1">Dato</label>
+                <input
+                  name="deadline_date"
+                  type="date"
+                  defaultValue={toDateInput(job?.deadline ?? null)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+              </div>
+              <div className="w-28">
+                <label className="block text-xs text-gray-400 mb-1">Tidspunkt</label>
+                <input
+                  name="deadline_time"
+                  type="time"
+                  defaultValue={toTimeInput(job?.deadline ?? null) || "23:59"}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Ansøgere kan ikke søge efter dette tidspunkt.</p>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Krav (kommasepareret)</label>
+            <input
+              name="requirements"
+              defaultValue={job?.requirements?.join(", ") ?? ""}
+              placeholder="Excel, kommunikation, 2+ års erfaring"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -202,20 +386,8 @@ function JobFormFields({
 // ── Edit modal (portalled to document.body to escape layout overflow) ─────────
 
 function EditJobModal({ job, onClose, onSaved }: { job: Job; onClose: () => void; onSaved: () => void }) {
-  const dateRef = useRef<HTMLInputElement>(null);
-  const timeRef = useRef<HTMLInputElement>(null);
-  const [deadlineError, setDeadlineError] = useState<string | null>(null);
+  const [backdropRef] = useState(() => ({ current: null as HTMLDivElement | null }));
 
-  // Set values directly on DOM elements after mount, bypassing React's rendering
-  // which would apply locale formatting on Safari/Mac
-  useEffect(() => {
-    if (dateRef.current) dateRef.current.value = job?.deadline ? toDateInput(job.deadline) : "";
-  }, []);
-  useEffect(() => {
-    if (timeRef.current) timeRef.current.value = job?.deadline ? toTimeInput(job.deadline) : "";
-  }, []);
-
-  const backdropRef = useRef<HTMLDivElement>(null);
   const [state, action, saving] = useActionState(
     async (prev: any, fd: FormData) => {
       const res = await updateJob(prev, fd);
@@ -225,24 +397,9 @@ function EditJobModal({ job, onClose, onSaved }: { job: Job; onClose: () => void
     {}
   );
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    const dateVal = dateRef.current?.value ?? "";
-    const timeVal = timeRef.current?.value ?? "";
-    const dateOk = dateVal === "" || /^\d{4}-\d{2}-\d{2}$/.test(dateVal);
-    const timeOk = timeVal === "" || /^\d{2}:\d{2}$/.test(timeVal);
-    if (!dateOk || !timeOk) {
-      e.preventDefault();
-      setDeadlineError(
-        !dateOk ? "Dato skal være i formatet YYYY-MM-DD" : "Tidspunkt skal være i formatet HH:MM"
-      );
-    } else {
-      setDeadlineError(null);
-    }
-  }
-
   const content = (
     <div
-      ref={backdropRef}
+      ref={(el) => { backdropRef.current = el; }}
       className="fixed inset-0 z-[9999] flex items-start justify-center bg-black/50 px-4 py-10 overflow-y-auto"
       onClick={(e) => { if (e.target === backdropRef.current) onClose(); }}
     >
@@ -261,15 +418,11 @@ function EditJobModal({ job, onClose, onSaved }: { job: Job; onClose: () => void
           </button>
         </div>
 
-        <form action={action} onSubmit={handleSubmit} className="space-y-4">
+        <form action={action} className="space-y-4">
           <input type="hidden" name="jobId" value={job.id} />
-          <JobFormFields job={job} dateRef={dateRef} timeRef={timeRef} />
+          <JobFormFields job={job} hideDeadline />
+          <DeadlinePicker initialDeadline={job.deadline} />
 
-          {deadlineError && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-              {deadlineError}
-            </p>
-          )}
           {state?.error && (
             <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
               {state.error}
