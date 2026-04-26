@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   createJob,
@@ -40,7 +41,8 @@ function toDatetimeLocal(deadline: string | null): string {
   return deadline.slice(0, 16);
 }
 
-function formatDeadlineRemaining(deadline: string): string {
+function calcDeadlineLabel(deadline: string | null): string {
+  if (!deadline) return "Ingen frist sat";
   const now = new Date();
   const dl = new Date(deadline);
   const diffMs = dl.getTime() - now.getTime();
@@ -54,11 +56,26 @@ function formatDeadlineRemaining(deadline: string): string {
     return `Udløber i dag kl. ${hh}:${mm}`;
   }
   const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-  if (diffDays === 1) return "1 dag tilbage";
-  return `${diffDays} dage tilbage`;
+  return diffDays === 1 ? "1 dag tilbage" : `${diffDays} dage tilbage`;
 }
 
-// ── Job form fields (shared between create and edit) ─────────────────────────
+// Rendered client-only to avoid SSR/hydration mismatch from new Date()
+function DeadlineLabel({ deadline }: { deadline: string | null }) {
+  const [label, setLabel] = useState<string | null>(null);
+  useEffect(() => {
+    setLabel(calcDeadlineLabel(deadline));
+  }, [deadline]);
+  if (label === null) return null;
+  const expired = label === "Udløbet";
+  const none = label === "Ingen frist sat";
+  return (
+    <span className={`text-xs font-medium ${expired ? "text-red-500" : none ? "text-gray-300" : "text-blue-600"}`}>
+      {label}
+    </span>
+  );
+}
+
+// ── Shared form fields ────────────────────────────────────────────────────────
 
 function JobFormFields({ job }: { job?: Job }) {
   return (
@@ -68,7 +85,7 @@ function JobFormFields({ job }: { job?: Job }) {
           <label className="block text-xs font-medium text-gray-700 mb-1">Jobtitel</label>
           <input
             name="title"
-            defaultValue={job?.title}
+            defaultValue={job?.title ?? ""}
             placeholder="Marketing-assistent"
             required
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
@@ -149,17 +166,9 @@ function JobFormFields({ job }: { job?: Job }) {
   );
 }
 
-// ── Edit job modal ────────────────────────────────────────────────────────────
+// ── Edit modal (portalled to document.body to escape layout overflow) ─────────
 
-function EditJobModal({
-  job,
-  onClose,
-  onSaved,
-}: {
-  job: Job;
-  onClose: () => void;
-  onSaved: () => void;
-}) {
+function EditJobModal({ job, onClose, onSaved }: { job: Job; onClose: () => void; onSaved: () => void }) {
   const backdropRef = useRef<HTMLDivElement>(null);
   const [state, action, saving] = useActionState(
     async (prev: any, fd: FormData) => {
@@ -170,16 +179,25 @@ function EditJobModal({
     {}
   );
 
-  return (
+  const content = (
     <div
       ref={backdropRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8 overflow-y-auto"
+      className="fixed inset-0 z-[9999] flex items-start justify-center bg-black/50 px-4 py-10 overflow-y-auto"
       onClick={(e) => { if (e.target === backdropRef.current) onClose(); }}
     >
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 space-y-5 my-auto">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 space-y-5">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-black text-gray-900">Rediger jobopslag</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl leading-none">✕</button>
+          <div>
+            <h2 className="text-lg font-black text-gray-900">Rediger jobopslag</h2>
+            <p className="text-xs text-gray-400 mt-0.5">{job.title}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-700 text-xl leading-none transition-colors"
+          >
+            ✕
+          </button>
         </div>
 
         <form action={action} className="space-y-4">
@@ -189,6 +207,11 @@ function EditJobModal({
           {state?.error && (
             <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
               {state.error}
+            </p>
+          )}
+          {state?.success && (
+            <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+              {state.success}
             </p>
           )}
 
@@ -212,6 +235,8 @@ function EditJobModal({
       </div>
     </div>
   );
+
+  return createPortal(content, document.body);
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────────
@@ -232,14 +257,14 @@ export default function CompanyJobsPage() {
     {}
   );
 
-  const fetchJobs = () => {
+  function fetchJobs() {
     getCompanyJobs().then(({ data }) => {
       setJobs((data as unknown as Job[]) || []);
       setLoading(false);
     });
-  };
+  }
 
-  useEffect(fetchJobs, []);
+  useEffect(() => { fetchJobs(); }, []);
 
   if (loading) return <div className="p-8 text-gray-400 text-sm">Indlæser…</div>;
 
@@ -267,7 +292,6 @@ export default function CompanyJobsPage() {
           </button>
         </div>
 
-        {/* New job form */}
         {showForm && (
           <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
             <h2 className="font-bold text-gray-900 mb-4">Opret nyt jobopslag</h2>
@@ -287,7 +311,6 @@ export default function CompanyJobsPage() {
           </div>
         )}
 
-        {/* Jobs list */}
         <div className="space-y-4">
           {jobs.map((job) => {
             const isExpanded = expanded === job.id;
@@ -298,6 +321,7 @@ export default function CompanyJobsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <button
+                        type="button"
                         onClick={() => setEditingJob(job)}
                         className="font-bold text-gray-900 hover:underline text-left"
                       >
@@ -310,17 +334,22 @@ export default function CompanyJobsPage() {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-400">
-                      Oprettet {new Date(job.created_at).toLocaleDateString("da-DK")}
-                      {job.budget && ` · ${job.budget} kr`}
-                      {` · ${job.applications?.length ?? 0} ansøgninger`}
-                      {job.deadline && ` · ${formatDeadlineRemaining(job.deadline)}`}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                      <span className="text-xs text-gray-400">
+                        Oprettet {new Date(job.created_at).toLocaleDateString("da-DK")}
+                        {job.budget ? ` · ${job.budget} kr` : ""}
+                        {` · ${job.applications?.length ?? 0} ansøgninger`}
+                      </span>
+                      <span className="text-gray-200">·</span>
+                      <DeadlineLabel deadline={job.deadline} />
+                    </div>
                   </div>
+
                   <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
                     <button
+                      type="button"
                       onClick={() => setEditingJob(job)}
-                      className="text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                      className="text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors font-medium"
                     >
                       Rediger
                     </button>
@@ -341,6 +370,7 @@ export default function CompanyJobsPage() {
                       Se ansøgere
                     </Link>
                     <button
+                      type="button"
                       onClick={() => setExpanded(isExpanded ? null : job.id)}
                       className="text-xs px-3 py-1 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
                     >
@@ -383,7 +413,7 @@ export default function CompanyJobsPage() {
 // ── AppRow ────────────────────────────────────────────────────────────────────
 
 function AppRow({ app, onUpdate }: { app: Application; onUpdate: () => void }) {
-  const [state, action, pending] = useActionState(
+  const [, action, pending] = useActionState(
     async (prev: any, fd: FormData) => {
       const res = await updateApplicationStatus(prev, fd);
       if (res.success) onUpdate();
