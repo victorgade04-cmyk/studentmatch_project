@@ -37,12 +37,9 @@ type Job = {
 
 function toDateInput(deadline: string | null): string {
   if (!deadline) return "";
-  console.log("[toDateInput] raw deadline from DB:", deadline);
-  // Already a plain date string yyyy-MM-dd
   if (/^\d{4}-\d{2}-\d{2}$/.test(deadline)) return deadline;
-  // ISO string or anything parseable — extract date part in local time
   const d = new Date(deadline);
-  if (isNaN(d.getTime())) { console.warn("[toDateInput] could not parse:", deadline); return ""; }
+  if (isNaN(d.getTime())) return "";
   const yyyy = d.getFullYear();
   const MM = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
@@ -51,7 +48,6 @@ function toDateInput(deadline: string | null): string {
 
 function toTimeInput(deadline: string | null): string {
   if (!deadline) return "";
-  // date-only string has no time component — default to end of day
   if (/^\d{4}-\d{2}-\d{2}$/.test(deadline)) return "23:59";
   const d = new Date(deadline);
   if (isNaN(d.getTime())) return "";
@@ -160,22 +156,28 @@ function JobFormFields({ job }: { job?: Job }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Ansøgningsfrist</label>
+          <p className="block text-xs font-medium text-gray-700 mb-1">Ansøgningsfrist <span className="text-gray-400 font-normal">(valgfrit)</span></p>
           <div className="flex gap-2">
-            <input
-              name="deadline_date"
-              type="date"
-              defaultValue={toDateInput(job?.deadline ?? null)}
-              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
-            <input
-              name="deadline_time"
-              type="time"
-              defaultValue={toTimeInput(job?.deadline ?? null)}
-              className="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
+            <div className="flex-1">
+              <label className="block text-xs text-gray-400 mb-1">Dato</label>
+              <input
+                name="deadline_date"
+                type="date"
+                defaultValue={toDateInput(job?.deadline ?? null)}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
+            <div className="w-28">
+              <label className="block text-xs text-gray-400 mb-1">Tidspunkt</label>
+              <input
+                name="deadline_time"
+                type="time"
+                defaultValue={toTimeInput(job?.deadline ?? null)}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
           </div>
-          <p className="text-xs text-gray-400 mt-1">Valgfrit — ansøgere kan ikke søge efter dette tidspunkt.</p>
+          <p className="text-xs text-gray-400 mt-1">Ansøgere kan ikke søge efter dette tidspunkt.</p>
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Krav (kommasepareret)</label>
