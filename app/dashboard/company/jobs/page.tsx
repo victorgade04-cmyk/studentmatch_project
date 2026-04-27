@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { KeyboardEvent, useActionState, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
@@ -277,6 +277,81 @@ function DeadlinePicker({ initialDeadline }: { initialDeadline: string | null })
   );
 }
 
+// ── RequirementsInput ─────────────────────────────────────────────────────────
+
+function RequirementsInput({ initialRequirements }: { initialRequirements: string[] }) {
+  const [tags, setTags] = useState<string[]>(initialRequirements);
+  const [inputValue, setInputValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function addTag(raw: string) {
+    const trimmed = raw.replace(/,+$/, "").trim();
+    if (!trimmed) return;
+    if (tags.some((t) => t.toLowerCase() === trimmed.toLowerCase())) {
+      setInputValue("");
+      return;
+    }
+    setTags((prev) => [...prev, trimmed]);
+    setInputValue("");
+  }
+
+  function removeTag(i: number) {
+    setTags((prev) => prev.filter((_, idx) => idx !== i));
+  }
+
+  function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") { e.preventDefault(); addTag(inputValue); }
+    else if (e.key === ",") { e.preventDefault(); addTag(inputValue); }
+    else if (e.key === "Backspace" && inputValue === "" && tags.length > 0) {
+      removeTag(tags.length - 1);
+    }
+  }
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value;
+    if (val.endsWith(",")) { addTag(val.slice(0, -1)); }
+    else { setInputValue(val); }
+  }
+
+  return (
+    <div>
+      <input type="hidden" name="requirements" value={tags.join(",")} />
+      <label className="block text-xs font-medium text-gray-700 mb-1">Krav</label>
+      <div
+        className="min-h-[40px] w-full border border-gray-200 rounded-lg px-3 py-2 flex flex-wrap gap-1.5 items-center cursor-text focus-within:ring-2 focus-within:ring-gray-900 bg-white transition-shadow"
+        onClick={() => inputRef.current?.focus()}
+      >
+        {tags.map((tag, i) => (
+          <span
+            key={i}
+            className="inline-flex items-center gap-1 bg-gray-900 text-white text-xs font-semibold px-2.5 py-1 rounded-full"
+          >
+            {tag}
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); removeTag(i); }}
+              className="ml-0.5 hover:text-gray-300 transition-colors leading-none"
+              aria-label={`Fjern ${tag}`}
+            >
+              ×
+            </button>
+          </span>
+        ))}
+        <input
+          ref={inputRef}
+          type="text"
+          value={inputValue}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          placeholder={tags.length === 0 ? "Tilføj krav og tryk Enter…" : "Tilføj flere…"}
+          className="flex-1 min-w-[140px] text-sm outline-none bg-transparent placeholder-gray-400"
+        />
+      </div>
+      <p className="text-xs text-gray-400 mt-1">Tryk Enter eller komma for at tilføje et krav.</p>
+    </div>
+  );
+}
+
 // ── Shared form fields ────────────────────────────────────────────────────────
 
 function JobFormFields({ job, hideDeadline }: { job?: Job; hideDeadline?: boolean }) {
@@ -343,53 +418,34 @@ function JobFormFields({ job, hideDeadline }: { job?: Job; hideDeadline?: boolea
         </div>
       </div>
 
-      {hideDeadline ? (
+      <RequirementsInput initialRequirements={job?.requirements ?? []} />
+
+      {!hideDeadline && (
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Krav (kommasepareret)</label>
-          <input
-            name="requirements"
-            defaultValue={job?.requirements?.join(", ") ?? ""}
-            placeholder="Excel, kommunikation, 2+ års erfaring"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-          />
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <p className="block text-xs font-medium text-gray-700 mb-1">
-              Ansøgningsfrist <span className="text-gray-400 font-normal">(valgfrit)</span>
-            </p>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <label className="block text-xs text-gray-400 mb-1">Dato</label>
-                <input
-                  name="deadline_date"
-                  type="date"
-                  defaultValue={toDateInput(job?.deadline ?? null)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                />
-              </div>
-              <div className="w-28">
-                <label className="block text-xs text-gray-400 mb-1">Tidspunkt</label>
-                <input
-                  name="deadline_time"
-                  type="time"
-                  defaultValue={toTimeInput(job?.deadline ?? null) || "23:59"}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                />
-              </div>
+          <p className="block text-xs font-medium text-gray-700 mb-1">
+            Ansøgningsfrist <span className="text-gray-400 font-normal">(valgfrit)</span>
+          </p>
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <label className="block text-xs text-gray-400 mb-1">Dato</label>
+              <input
+                name="deadline_date"
+                type="date"
+                defaultValue={toDateInput(job?.deadline ?? null)}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
             </div>
-            <p className="text-xs text-gray-400 mt-1">Ansøgere kan ikke søge efter dette tidspunkt.</p>
+            <div className="w-28">
+              <label className="block text-xs text-gray-400 mb-1">Tidspunkt</label>
+              <input
+                name="deadline_time"
+                type="time"
+                defaultValue={toTimeInput(job?.deadline ?? null) || "23:59"}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Krav (kommasepareret)</label>
-            <input
-              name="requirements"
-              defaultValue={job?.requirements?.join(", ") ?? ""}
-              placeholder="Excel, kommunikation, 2+ års erfaring"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
-          </div>
+          <p className="text-xs text-gray-400 mt-1">Ansøgere kan ikke søge efter dette tidspunkt.</p>
         </div>
       )}
     </>
