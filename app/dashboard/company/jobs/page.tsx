@@ -528,7 +528,8 @@ export default function CompanyJobsPage() {
           <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
             <h2 className="font-bold text-gray-900 mb-4">Opret nyt jobopslag</h2>
             <form action={createAction} className="space-y-4">
-              <JobFormFields />
+              <JobFormFields hideDeadline />
+              <DeadlinePicker initialDeadline={null} />
               {createState?.error && (
                 <p className="text-sm text-red-600">{createState.error}</p>
               )}
