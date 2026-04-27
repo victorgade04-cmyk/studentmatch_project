@@ -162,49 +162,49 @@ function DeadlinePicker({ initialDeadline }: { initialDeadline: string | null })
     : "Ingen frist sat";
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {/* Hidden inputs consumed by the parent form's FormData */}
       <input type="hidden" name="deadline_date" value={dateStr} />
       <input type="hidden" name="deadline_time" value={timeStr} />
 
-      <p className="block text-xs font-medium text-gray-700">
-        Ansøgningsfrist <span className="text-gray-400 font-normal">(valgfrit)</span>
-      </p>
-
-      {/* Selected date summary */}
-      <div className="flex items-center justify-between min-h-[1.5rem]">
-        <p className={`text-sm font-medium ${selected ? "text-gray-900" : "text-gray-400"}`}>
-          {displayText}
+      <div className="flex items-center justify-between">
+        <p className="block text-xs font-medium text-gray-700">
+          Ansøgningsfrist <span className="text-gray-400 font-normal">(valgfrit)</span>
         </p>
         {selected && (
           <button
             type="button"
             onClick={() => setSelected(null)}
-            className="text-xs text-gray-400 hover:text-gray-700 transition-colors shrink-0 ml-2"
+            className="text-xs text-gray-400 hover:text-gray-700 transition-colors"
           >
             Fjern frist
           </button>
         )}
       </div>
 
+      {/* Selected date summary */}
+      <p className={`text-xs font-medium ${selected ? "text-gray-800" : "text-gray-400"}`}>
+        {displayText}
+      </p>
+
       {/* Calendar */}
-      <div className="border border-gray-200 rounded-xl overflow-hidden select-none">
+      <div className="border border-gray-200 rounded-lg overflow-hidden select-none">
         {/* Month navigation */}
-        <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-100">
+        <div className="flex items-center justify-between px-3 py-1.5 bg-gray-50 border-b border-gray-100">
           <button
             type="button"
             onClick={prevMonth}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition-colors text-lg leading-none"
+            className="w-6 h-6 flex items-center justify-center rounded text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition-colors leading-none"
           >
             ‹
           </button>
-          <span className="text-sm font-semibold text-gray-900">
+          <span className="text-xs font-semibold text-gray-900">
             {MONTHS_DA_CAP[viewMonth]} {viewYear}
           </span>
           <button
             type="button"
             onClick={nextMonth}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition-colors text-lg leading-none"
+            className="w-6 h-6 flex items-center justify-center rounded text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition-colors leading-none"
           >
             ›
           </button>
@@ -213,14 +213,14 @@ function DeadlinePicker({ initialDeadline }: { initialDeadline: string | null })
         {/* Weekday headers */}
         <div className="grid grid-cols-7 border-b border-gray-100 bg-gray-50">
           {DAYS_SHORT.map(d => (
-            <div key={d} className="text-center text-xs font-medium text-gray-400 py-1.5">
+            <div key={d} className="text-center text-[10px] font-medium text-gray-400 py-1">
               {d}
             </div>
           ))}
         </div>
 
         {/* Day cells */}
-        <div className="grid grid-cols-7 gap-0.5 p-2">
+        <div className="grid grid-cols-7 gap-px p-1">
           {cells.map((day, i) => {
             if (!day) return <div key={i} />;
             const cellDate = new Date(viewYear, viewMonth, day);
@@ -234,10 +234,10 @@ function DeadlinePicker({ initialDeadline }: { initialDeadline: string | null })
                 disabled={isPast}
                 onClick={() => setSelected(cellDate)}
                 className={[
-                  "w-full aspect-square flex items-center justify-center rounded-lg text-sm transition-colors",
+                  "w-full h-7 flex items-center justify-center rounded text-xs transition-colors",
                   isPast ? "text-gray-300 cursor-not-allowed" : "cursor-pointer",
                   isSel ? "bg-gray-900 text-white font-semibold" : "",
-                  isToday && !isSel ? "ring-2 ring-gray-400 font-semibold" : "",
+                  isToday && !isSel ? "ring-1 ring-gray-400 font-semibold" : "",
                   !isPast && !isSel ? "hover:bg-gray-100" : "",
                 ].join(" ")}
               >
@@ -250,12 +250,12 @@ function DeadlinePicker({ initialDeadline }: { initialDeadline: string | null })
 
       {/* Time picker — only shown once a date is chosen */}
       {selected && (
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-gray-700">Tidspunkt:</span>
           <select
             value={hour}
             onChange={(e) => setHour(parseInt(e.target.value))}
-            className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+            className="border border-gray-200 rounded px-1.5 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
           >
             {Array.from({ length: 24 }, (_, h) => (
               <option key={h} value={h}>{String(h).padStart(2,"0")}</option>
@@ -265,7 +265,7 @@ function DeadlinePicker({ initialDeadline }: { initialDeadline: string | null })
           <select
             value={minute}
             onChange={(e) => setMinute(parseInt(e.target.value))}
-            className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+            className="border border-gray-200 rounded px-1.5 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
           >
             {MINUTES.map(m => (
               <option key={m} value={m}>{String(m).padStart(2,"0")}</option>
