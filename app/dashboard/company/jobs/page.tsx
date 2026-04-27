@@ -107,25 +107,31 @@ function DeadlinePicker({ initialDeadline }: { initialDeadline: string | null })
     return new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3]));
   }
 
+  const [selected, setSelected] = useState<Date | null>(() => {
+    if (initialDeadline) return parseDateStr(toDateInput(initialDeadline));
+    const d = new Date(); d.setHours(0, 0, 0, 0); return d; // today
+  });
+  const [viewYear, setViewYear] = useState(() => {
+    if (initialDeadline) return parseDateStr(toDateInput(initialDeadline))?.getFullYear() ?? new Date().getFullYear();
+    return new Date().getFullYear();
+  });
+  const [viewMonth, setViewMonth] = useState(() => {
+    if (initialDeadline) return parseDateStr(toDateInput(initialDeadline))?.getMonth() ?? new Date().getMonth();
+    return new Date().getMonth();
+  });
+  const [hour, setHour] = useState(() => {
+    const m = initialDeadline?.match(/T(\d{2})[:\.](\d{2})/);
+    if (m) return parseInt(m[1]);
+    const now = new Date();
+    return (now.getHours() + (now.getMinutes() >= 53 ? 1 : 0)) % 24;
+  });
+  const [minute, setMinute] = useState(() => {
+    const m = initialDeadline?.match(/T(\d{2})[:\.](\d{2})/);
+    const raw = m ? parseInt(m[2]) : new Date().getMinutes();
+    return MINUTES.reduce((c, v) => Math.abs(v - raw) < Math.abs(c - raw) ? v : c);
+  });
+
   const todayMidnight = (() => { const d = new Date(); d.setHours(0,0,0,0); return d; })();
-  const now = new Date();
-
-  const initDate = initialDeadline
-    ? parseDateStr(toDateInput(initialDeadline))
-    : new Date(todayMidnight); // default to today
-
-  const initTimeMatch = initialDeadline?.match(/T(\d{2})[:\.](\d{2})/);
-  const rawMin = initTimeMatch ? parseInt(initTimeMatch[2]) : now.getMinutes();
-  const initMinute = MINUTES.reduce((c, v) => Math.abs(v - rawMin) < Math.abs(c - rawMin) ? v : c);
-  const initHour = initTimeMatch
-    ? parseInt(initTimeMatch[1])
-    : now.getHours() + (now.getMinutes() >= 53 ? 1 : 0); // bump hour if rounding up to :00
-
-  const [selected, setSelected] = useState<Date | null>(initDate);
-  const [viewYear, setViewYear] = useState(initDate?.getFullYear() ?? todayMidnight.getFullYear());
-  const [viewMonth, setViewMonth] = useState(initDate?.getMonth() ?? todayMidnight.getMonth());
-  const [hour, setHour] = useState(initHour % 24);
-  const [minute, setMinute] = useState(initMinute);
 
   function prevMonth() {
     if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
