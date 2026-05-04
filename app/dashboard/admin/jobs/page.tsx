@@ -2,21 +2,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { removeJob } from "../actions";
 
 export default async function AdminJobsPage() {
-  const supabase = createAdminClient();
+  const adminClient = createAdminClient();
 
-  // Fetch jobs and company profiles separately to avoid PostgREST FK join issues
-  const { data: jobs } = await supabase
+  const { data: jobs } = await adminClient
     .from("jobs")
-    .select("id, title, budget, status, created_at, company_id, deadline")
+    .select("*, company_profiles(company_name)")
     .order("created_at", { ascending: false });
-
-  const companyIds = [...new Set((jobs ?? []).map((j: any) => j.company_id).filter(Boolean))];
-  const { data: companies } = companyIds.length
-    ? await supabase.from("company_profiles").select("id, company_name").in("id", companyIds)
-    : { data: [] };
-  const companyMap: Record<string, string> = Object.fromEntries(
-    (companies ?? []).map((c: any) => [c.id, c.company_name])
-  );
 
   return (
     <div className="p-8">
@@ -41,7 +32,7 @@ export default async function AdminJobsPage() {
               <tr key={job.id} className="hover:bg-gray-50/50">
                 <td className="px-6 py-3 font-medium text-gray-800">{job.title}</td>
                 <td className="px-6 py-3 text-gray-600">
-                  {companyMap[job.company_id] || "—"}
+                  {(job.company_profiles as any)?.company_name || "—"}
                 </td>
                 <td className="px-6 py-3 text-gray-600">
                   {job.budget ? `${job.budget} kr` : "—"}
